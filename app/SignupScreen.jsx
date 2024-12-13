@@ -16,7 +16,11 @@ import { useNavigation } from "@react-navigation/native";
 
 const SignupScreen = () => {
   const navigation = useNavigation();
-  const [secureEntery, setSecureEntery] = useState(true);
+  const [secureEntry, setSecureEntry] = useState(true);
+
+  // États pour les nouveaux champs firstname et lastname
+  const [firstname, setFirstname] = useState("");
+  const [lastname, setLastname] = useState("");
 
   const handleGoBack = () => {
     navigation.goBack();
@@ -29,11 +33,7 @@ const SignupScreen = () => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButtonWrapper} onPress={handleGoBack}>
-        <Ionicons
-          name={"arrow-back-outline"}
-          color={colors.primary}
-          size={25}
-        />
+        <Ionicons name={"arrow-back-outline"} color={colors.primary} size={25} />
       </TouchableOpacity>
       <View style={styles.textContainer}>
         <Text style={styles.headingText}>Let's get</Text>
@@ -41,6 +41,31 @@ const SignupScreen = () => {
       </View>
       {/* form  */}
       <View style={styles.formContainer}>
+        {/* Nouveau champ pour le prénom */}
+        <View style={styles.inputContainer}>
+          <Ionicons name={"person-outline"} size={30} color={colors.secondary} />
+          <TextInput
+            style={styles.textInput}
+            placeholder="First Name"
+            placeholderTextColor={colors.secondary}
+            value={firstname}
+            onChangeText={setFirstname} // Mise à jour de l'état
+          />
+        </View>
+
+        {/* Nouveau champ pour le nom de famille */}
+        <View style={styles.inputContainer}>
+          <Ionicons name={"person-outline"} size={30} color={colors.secondary} />
+          <TextInput
+            style={styles.textInput}
+            placeholder="Last Name"
+            placeholderTextColor={colors.secondary}
+            value={lastname}
+            onChangeText={setLastname} // Mise à jour de l'état
+          />
+        </View>
+
+        {/* Champs déjà existants */}
         <View style={styles.inputContainer}>
           <Ionicons name={"mail-outline"} size={30} color={colors.secondary} />
           <TextInput
@@ -56,11 +81,11 @@ const SignupScreen = () => {
             style={styles.textInput}
             placeholder="Enter your password"
             placeholderTextColor={colors.secondary}
-            secureTextEntry={secureEntery}
+            secureTextEntry={secureEntry}
           />
           <TouchableOpacity
             onPress={() => {
-              setSecureEntery((prev) => !prev);
+              setSecureEntry((prev) => !prev);
             }}
           >
             <SimpleLineIcons name={"eye"} size={20} color={colors.secondary} />
@@ -76,7 +101,7 @@ const SignupScreen = () => {
             style={styles.textInput}
             placeholder="Enter your phone no"
             placeholderTextColor={colors.secondary}
-            secureTextEntry={secureEntery}
+            secureTextEntry={secureEntry}
             keyboardType="phone-pad"
           />
         </View>
@@ -94,9 +119,10 @@ const SignupScreen = () => {
         </TouchableOpacity>
         <View style={styles.footerContainer}>
           <Text style={styles.accountText}>Already have an account!</Text>
-          <TouchableOpacity onPress={handleLogin}>
-            <Text style={styles.signupText}>Login</Text>
-          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("LoginScreen")}>
+  <Text style={styles.signupText}>Login</Text>
+</TouchableOpacity>
+
         </View>
       </View>
     </View>
