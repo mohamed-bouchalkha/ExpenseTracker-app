@@ -91,7 +91,7 @@ const SignupScreen = () => {
             <SimpleLineIcons name={"eye"} size={20} color={colors.secondary} />
           </TouchableOpacity>
         </View>
-        <View style={styles.inputContainer}>
+        {/* <View style={styles.inputContainer}>
           <SimpleLineIcons
             name={"screen-smartphone"}
             size={30}
@@ -104,7 +104,7 @@ const SignupScreen = () => {
             secureTextEntry={secureEntry}
             keyboardType="phone-pad"
           />
-        </View>
+        </View> */}
 
         <TouchableOpacity style={styles.loginButtonWrapper}>
           <Text style={styles.loginText}>Sign up</Text>
