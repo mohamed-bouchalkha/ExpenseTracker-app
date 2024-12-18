@@ -5,125 +5,103 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import { colors } from "./utils/colors";
 import { fonts } from "./utils/fonts";
-
+import API from "./utils/api"; // Votre instance Axios
 import Ionicons from "react-native-vector-icons/Ionicons";
 import SimpleLineIcons from "react-native-vector-icons/SimpleLineIcons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native"; 
 
 const SignupScreen = () => {
   const navigation = useNavigation();
-  const [secureEntry, setSecureEntry] = useState(true);
-
-  // États pour les nouveaux champs firstname et lastname
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [secureEntry, setSecureEntry] = useState(true);
 
-  const handleGoBack = () => {
-    navigation.goBack();
-  };
+  const handleSignup = async () => {
+    try {
+      const response = await API.post("/register", {
+        firstName: firstname,
+        lastName: lastname,    
+        email,
+        password,
+      });
+      
 
-  const handleLogin = () => {
-    navigation.navigate("LOGIN");
+      if (response.status === 201) {
+        Alert.alert("Success", "Account Created Successfully!");
+        navigation.navigate("LoginScreen");
+      }
+    } catch (error) {
+      console.error("Signup Error: ", error.response?.data || error.message);
+      Alert.alert("Error", "Signup Failed. Please try again.");
+    }
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButtonWrapper} onPress={handleGoBack}>
-        <Ionicons name={"arrow-back-outline"} color={colors.primary} size={25} />
+      <TouchableOpacity style={styles.backButtonWrapper} onPress={() => navigation.goBack()}>
+        <Ionicons name={"arrow-back-outline"} color={"#000"} size={25} />
       </TouchableOpacity>
+
       <View style={styles.textContainer}>
         <Text style={styles.headingText}>Let's get</Text>
         <Text style={styles.headingText}>started</Text>
       </View>
-      {/* form  */}
+
       <View style={styles.formContainer}>
-        {/* Nouveau champ pour le prénom */}
         <View style={styles.inputContainer}>
-          <Ionicons name={"person-outline"} size={30} color={colors.secondary} />
+          <Ionicons name={"person-outline"} size={30} color={"#999"} />
           <TextInput
             style={styles.textInput}
             placeholder="First Name"
-            placeholderTextColor={colors.secondary}
             value={firstname}
-            onChangeText={setFirstname} // Mise à jour de l'état
+            onChangeText={setFirstname}
           />
         </View>
 
-        {/* Nouveau champ pour le nom de famille */}
         <View style={styles.inputContainer}>
-          <Ionicons name={"person-outline"} size={30} color={colors.secondary} />
+          <Ionicons name={"person-outline"} size={30} color={"#999"} />
           <TextInput
             style={styles.textInput}
             placeholder="Last Name"
-            placeholderTextColor={colors.secondary}
             value={lastname}
-            onChangeText={setLastname} // Mise à jour de l'état
+            onChangeText={setLastname}
           />
         </View>
 
-        {/* Champs déjà existants */}
         <View style={styles.inputContainer}>
-          <Ionicons name={"mail-outline"} size={30} color={colors.secondary} />
+          <Ionicons name={"mail-outline"} size={30} color={"#999"} />
           <TextInput
             style={styles.textInput}
             placeholder="Enter your email"
-            placeholderTextColor={colors.secondary}
-            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
           />
         </View>
+
         <View style={styles.inputContainer}>
-          <SimpleLineIcons name={"lock"} size={30} color={colors.secondary} />
+          <SimpleLineIcons name={"lock"} size={30} color={"#999"} />
           <TextInput
             style={styles.textInput}
             placeholder="Enter your password"
-            placeholderTextColor={colors.secondary}
             secureTextEntry={secureEntry}
+            value={password}
+            onChangeText={setPassword}
           />
-          <TouchableOpacity
-            onPress={() => {
-              setSecureEntry((prev) => !prev);
-            }}
-          >
-            <SimpleLineIcons name={"eye"} size={20} color={colors.secondary} />
+          <TouchableOpacity onPress={() => setSecureEntry((prev) => !prev)}>
+            <SimpleLineIcons name={secureEntry ? "eye" : "eye-off"} size={20} color={"#999"} />
           </TouchableOpacity>
         </View>
-        {/* <View style={styles.inputContainer}>
-          <SimpleLineIcons
-            name={"screen-smartphone"}
-            size={30}
-            color={colors.secondary}
-          />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Enter your phone no"
-            placeholderTextColor={colors.secondary}
-            secureTextEntry={secureEntry}
-            keyboardType="phone-pad"
-          />
-        </View> */}
 
-        <TouchableOpacity style={styles.loginButtonWrapper}>
+        <TouchableOpacity onPress={handleSignup} style={styles.loginButtonWrapper}>
           <Text style={styles.loginText}>Sign up</Text>
         </TouchableOpacity>
-        <Text style={styles.continueText}>or continue with</Text>
-        <TouchableOpacity style={styles.googleButtonContainer}>
-          <Image
-            source={require("./assets/google.png")}
-            style={styles.googleImage}
-          />
-          <Text style={styles.googleText}>Google</Text>
-        </TouchableOpacity>
-        <View style={styles.footerContainer}>
-          <Text style={styles.accountText}>Already have an account!</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("LoginScreen")}>
-  <Text style={styles.signupText}>Login</Text>
-</TouchableOpacity>
-
-        </View>
       </View>
     </View>
   );

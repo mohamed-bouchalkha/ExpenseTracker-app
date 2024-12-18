@@ -5,94 +5,86 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import { colors } from "./utils/colors";
 import { fonts } from "./utils/fonts";
-
+import API from "./utils/api"; // Votre instance Axios
 import Ionicons from "react-native-vector-icons/Ionicons";
 import SimpleLineIcons from "react-native-vector-icons/SimpleLineIcons";
 import { useNavigation } from "@react-navigation/native";
 
+
 const LoginScreen = () => {
   const navigation = useNavigation();
-  const [secureEntery, setSecureEntery] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [secureEntry, setSecureEntry] = useState(true);
 
-  const handleGoBack = () => {
-    navigation.goBack();
-  };
-  const handleSignup = () => {
-    navigation.navigate("SIGNUP");
+  const handleLogin = async () => {
+    try {
+      const response = await API.post("/login", {
+        email,
+        password,
+      });
+
+      if (response.status === 200) {
+        Alert.alert("Success", "Login Successful!");
+        navigation.navigate("HomeScreen");
+      }
+    } catch (error) {
+      console.error("Login Error: ", error.response?.data || error.message);
+      Alert.alert("Error", "Login Failed. Please check your credentials.");
+    }
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButtonWrapper} onPress={handleGoBack}>
-        <Ionicons
-          name={"arrow-back-outline"}
-          color={colors.primary}
-          size={25}
-        />
+      <TouchableOpacity style={styles.backButtonWrapper} onPress={() => navigation.goBack()}>
+        <Ionicons name={"arrow-back-outline"} color={"#000"} size={25} />
       </TouchableOpacity>
+
       <View style={styles.textContainer}>
         <Text style={styles.headingText}>Hey,</Text>
         <Text style={styles.headingText}>Welcome</Text>
         <Text style={styles.headingText}>Back</Text>
       </View>
-      {/* form  */}
+
       <View style={styles.formContainer}>
         <View style={styles.inputContainer}>
-          <Ionicons name={"mail-outline"} size={30} color={colors.secondary} />
+          <Ionicons name={"mail-outline"} size={30} color={"#999"} />
           <TextInput
             style={styles.textInput}
             placeholder="Enter your email"
-            placeholderTextColor={colors.secondary}
-            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
           />
         </View>
+
         <View style={styles.inputContainer}>
-          <SimpleLineIcons name={"lock"} size={30} color={colors.secondary} />
+          <SimpleLineIcons name={"lock"} size={30} color={"#999"} />
           <TextInput
             style={styles.textInput}
             placeholder="Enter your password"
-            placeholderTextColor={colors.secondary}
-            secureTextEntry={secureEntery}
+            secureTextEntry={secureEntry}
+            value={password}
+            onChangeText={setPassword}
           />
-          <TouchableOpacity
-            onPress={() => {
-              setSecureEntery((prev) => !prev);
-            }}
-          >
-            <SimpleLineIcons name={"eye"} size={20} color={colors.secondary} />
+          <TouchableOpacity onPress={() => setSecureEntry((prev) => !prev)}>
+            <SimpleLineIcons name={secureEntry ? "eye" : "eye-off"} size={20} color={"#999"} />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity>
-          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.loginButtonWrapper}>
+
+        <TouchableOpacity onPress={handleLogin} style={styles.loginButtonWrapper}>
           <Text style={styles.loginText}>Login</Text>
         </TouchableOpacity>
-        <Text style={styles.continueText}>or continue with</Text>
-        <TouchableOpacity style={styles.googleButtonContainer}>
-          <Image
-            source={require("./assets/google.png")}
-            style={styles.googleImage}
-          />
-          <Text style={styles.googleText}>Google</Text>
-        </TouchableOpacity>
-        <View style={styles.footerContainer}>
-          <Text style={styles.accountText}>Don’t have an account?</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("SignupScreen")}>
-  <Text style={styles.signupText}>Sign up</Text>
-</TouchableOpacity>
-        </View>
       </View>
     </View>
   );
 };
 
 export default LoginScreen;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
