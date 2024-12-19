@@ -1,11 +1,15 @@
 const mongoose = require('mongoose');
 
 const statisticsSchema = new mongoose.Schema({
-  totalSpent: { type: Number, required: true },
-  expensesByCategory: { 
-    type: Map, 
-    of: Number // Une clé de catégorie mappée à un montant total
-  }
+  userID: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Référence à l'utilisateur
+  totalSpent: { type: Number, default: 0 },
+  expensesByCategory: [
+    {
+      category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' }, // Catégorie
+      totalAmount: { type: Number, default: 0 }, // Montant total pour cette catégorie
+    },
+  ],
+  allExpenses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Expense' }], // Référence à toutes les dépenses associées
 });
 
 module.exports = mongoose.model('Statistics', statisticsSchema);

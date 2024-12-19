@@ -52,8 +52,9 @@ router.put('/updateCategory/:id', async (req, res) => {
   const { name } = req.body;
 
   try {
+    // Utilisation de `_id` pour trouver la catégorie
     const category = await Category.findOneAndUpdate(
-      { categoryId: req.params.id },
+      { _id: req.params.id },
       { name },
       { new: true }
     );
@@ -69,10 +70,13 @@ router.put('/updateCategory/:id', async (req, res) => {
   }
 });
 
+
 // Supprimer une catégorie par ID
 router.delete('/deleteCategory/:id', async (req, res) => {
   try {
-    const category = await Category.findOneAndDelete({ categoryId: req.params.id });
+    // Utilisation de `_id` pour trouver et supprimer la catégorie
+    const category = await Category.findOneAndDelete({ _id: req.params.id });
+
     if (!category) {
       return res.status(404).json({ message: 'Category not found' });
     }
@@ -83,5 +87,6 @@ router.delete('/deleteCategory/:id', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 module.exports = router;
