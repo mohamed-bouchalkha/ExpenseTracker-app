@@ -25,7 +25,7 @@ const SignupScreen = () => {
 
   const handleSignup = async () => {
     try {
-      const response = await API.post("/register", {
+      const response = await API.post("/api/auth/register", {
         firstName: firstname,
         lastName: lastname,    
         email,

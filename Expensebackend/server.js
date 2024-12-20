@@ -3,6 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
 const categoryRoutes = require('./routes/category');
+const passwordResetRoutes = require('./routes/passwordReset');
+
 const cors = require("cors");
 
 const app = express();
@@ -24,6 +26,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);   
+app.use('/api/password', passwordResetRoutes);
 
 // Lancer le serveur
 const PORT = process.env.PORT || 5000;
