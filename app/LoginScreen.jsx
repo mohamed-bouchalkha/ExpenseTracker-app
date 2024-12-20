@@ -15,7 +15,7 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     try {
-      const response = await API.post("/login", { email, password });
+      const response = await API.post("/api/auth/login", { email, password });
 
       if (response.status === 200) {
         Alert.alert("Success", "Login Successful!");
@@ -26,7 +26,15 @@ const LoginScreen = () => {
       Alert.alert("Error", "Login Failed. Please check your credentials.");
     }
   };
-
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+  const handleSignup = () => {
+    router.push("/SignupScreen"); // Redirige vers la page d'inscription
+  };
+  const handleforget = () => {
+    router.push("/EmailScreen"); // Redirige vers la page d'inscription
+  };  
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButtonWrapper} onPress={() => router.back()}>
@@ -63,10 +71,26 @@ const LoginScreen = () => {
             <SimpleLineIcons name={secureEntry ? "eye" : "eye-off"} size={20} color={"#999"} />
           </TouchableOpacity>
         </View>
-
+        <TouchableOpacity onPress={handleforget}>
+          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={handleLogin} style={styles.loginButtonWrapper}>
           <Text style={styles.loginText}>Login</Text>
         </TouchableOpacity>
+        <Text style={styles.continueText}>or continue with</Text>
+        <TouchableOpacity style={styles.googleButtonContainer}>
+          <Image
+            source={require("./assets/google.png")}
+            style={styles.googleImage}
+          />
+          <Text style={styles.googleText}>Google</Text>
+        </TouchableOpacity>
+        <View style={styles.footerContainer}>
+          <Text style={styles.accountText}>Don’t have an account?</Text>
+          <TouchableOpacity onPress={handleSignup}>
+            <Text style={styles.signupText}>Sign up</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -114,6 +138,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     fontFamily: fonts.Light,
   },
+  forgotPasswordText: {
+    textAlign: "right",
+    color: colors.primary,
+    fontFamily: fonts.SemiBold,
+    marginVertical: 10,
+  },
   loginButtonWrapper: {
     backgroundColor: colors.primary,
     borderRadius: 100,
@@ -125,5 +155,45 @@ const styles = StyleSheet.create({
     fontFamily: fonts.SemiBold,
     textAlign: "center",
     padding: 10,
+  },
+  continueText: {
+    textAlign: "center",
+    marginVertical: 20,
+    fontSize: 14,
+    fontFamily: fonts.Regular,
+    color: colors.primary,
+  },
+  googleButtonContainer: {
+    flexDirection: "row",
+    borderWidth: 2,
+    borderColor: colors.primary,
+    borderRadius: 100,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    gap: 10,
+  },
+  googleImage: {
+    height: 20,
+    width: 20,
+  },
+  googleText: {
+    fontSize: 20,
+    fontFamily: fonts.SemiBold,
+  },
+  footerContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: 20,
+    gap: 5,
+  },
+  accountText: {
+    color: colors.primary,
+    fontFamily: fonts.Regular,
+  },
+  signupText: {
+    color: colors.primary,
+    fontFamily: fonts.Bold,
   },
 });

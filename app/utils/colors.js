@@ -4,3 +4,4 @@ export const colors = {
   secondary: '#AEB5BB',
   gray: '#D9D9D9',
 };
+export default colors;
