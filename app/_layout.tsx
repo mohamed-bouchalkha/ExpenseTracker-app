@@ -21,6 +21,8 @@ export default function RootLayout() {
           <Stack.Screen name="MainScreen" />
           <Stack.Screen name="EmailScreen" />
           <Stack.Screen name="ResetpasswordScreen" />
+          <Stack.Screen name="VerifyEmailScreen" />
+
         </Stack>
       </NativeBaseProvider>
     </Provider>
