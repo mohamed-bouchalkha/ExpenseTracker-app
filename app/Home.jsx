@@ -17,12 +17,12 @@ const Index = () => {
 
   return (
     <View style={styles.container}>
-      <Image source={require("./assets/logo.png")} style={styles.logo} />
-      <Image source={require("./assets/man.png")} style={styles.bannerImage} />
-      <Text style={styles.title}>Lorem ipsum dolor.</Text>
+      <Image source={require("./assets/man.png")} style={[styles.logo, { opacity: 0 }]} />
+      <Image source={require("./assets/expenselogo.png")} style={styles.bannerImage} />
+
+      <Text style={styles.title}>Simplified Expense Tracking.</Text>
       <Text style={styles.subTitle}>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-        tempor incididunt ut labore et dolore
+      Manage your finances effortlessly and track your expenses in real time.
       </Text>
       <View style={styles.buttonContainer}>
         <TouchableOpacity
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.SemiBold,
     paddingHorizontal: 20,
     textAlign: "center",
-    color: colors.primary,
+    color: "#4B0082",
     marginTop: 40,
   },
   subTitle: {
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     flexDirection: "row",
     borderWidth: 2,
-    borderColor: colors.primary,
+    borderColor: "#4B0082",
     width: "80%",
     height: 60,
     borderRadius: 100,
