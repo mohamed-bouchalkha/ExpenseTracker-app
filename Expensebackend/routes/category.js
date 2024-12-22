@@ -2,17 +2,18 @@ const express = require('express');
 const router = express.Router();
 const Category = require('../models/Category');
 
-// Ajouter une nouvelle catégorie
 router.post('/addCategory', async (req, res) => {
-  const { categoryId, name } = req.body;
+  const { name } = req.body;
 
   try {
-    const existingCategory = await Category.findOne({ categoryId });
+    // Vérifier si une catégorie avec le même nom existe déjà
+    const existingCategory = await Category.findOne({ name });
     if (existingCategory) {
-      return res.status(400).json({ message: 'Category ID already exists' });
+      return res.status(400).json({ message: 'Category with this name already exists' });
     }
 
-    const category = new Category({ categoryId, name });
+    // Créer une nouvelle catégorie (MongoDB générera automatiquement un _id)
+    const category = new Category({ name });
     await category.save();
 
     res.status(201).json({ message: 'Category created successfully', category });
@@ -33,10 +34,10 @@ router.get('/getCategories', async (req, res) => {
   }
 });
 
-// Récupérer une catégorie par ID
+
 router.get('/getCategory/:id', async (req, res) => {
   try {
-    const category = await Category.findOne({ categoryId: req.params.id });
+    const category = await Category.findById(req.params.id); // Utilisation de _id pour trouver la catégorie
     if (!category) {
       return res.status(404).json({ message: 'Category not found' });
     }
@@ -47,16 +48,16 @@ router.get('/getCategory/:id', async (req, res) => {
   }
 });
 
-// Mettre à jour une catégorie par ID
+
 router.put('/updateCategory/:id', async (req, res) => {
   const { name } = req.body;
 
   try {
-    // Utilisation de `_id` pour trouver la catégorie
-    const category = await Category.findOneAndUpdate(
-      { _id: req.params.id },
+    // Utilisation de _id pour trouver la catégorie et mettre à jour son nom
+    const category = await Category.findByIdAndUpdate(
+      req.params.id,
       { name },
-      { new: true }
+      { new: true } // Renvoie la catégorie mise à jour
     );
 
     if (!category) {
@@ -71,11 +72,10 @@ router.put('/updateCategory/:id', async (req, res) => {
 });
 
 
-// Supprimer une catégorie par ID
 router.delete('/deleteCategory/:id', async (req, res) => {
   try {
-    // Utilisation de `_id` pour trouver et supprimer la catégorie
-    const category = await Category.findOneAndDelete({ _id: req.params.id });
+    // Utilisation de _id pour trouver et supprimer la catégorie
+    const category = await Category.findByIdAndDelete(req.params.id);
 
     if (!category) {
       return res.status(404).json({ message: 'Category not found' });

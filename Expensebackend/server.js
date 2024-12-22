@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
 const categoryRoutes = require('./routes/category');
 const passwordResetRoutes = require('./routes/passwordReset');
+const expenseRoutes = require('./routes/expense'); // Importer les routes des dépenses
 
 const cors = require("cors");
 
@@ -26,6 +27,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);   
+app.use('/api/expenses', expenseRoutes);
 app.use('/api/password', passwordResetRoutes);
 
 // Lancer le serveur
