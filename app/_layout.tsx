@@ -22,6 +22,9 @@ export default function RootLayout() {
           <Stack.Screen name="EmailScreen" />
           <Stack.Screen name="ResetpasswordScreen" />
           <Stack.Screen name="VerifyEmailScreen" />
+          <Stack.Screen name="AddExpence" />
+          <Stack.Screen name="AddCatgory" />
+          <Stack.Screen name="EditBudget" />
 
         </Stack>
       </NativeBaseProvider>
