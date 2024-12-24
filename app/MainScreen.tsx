@@ -48,7 +48,7 @@ const HomeScreen = () => {
 
   const handleFooterPress = (label: string, route: string) => {
     setActiveFooter(label);
-    if (route === "/Home" || route === "./AddExpence" || route === "./AddCatgory" || route === "./EditBudget") {
+    if (route === "./Home" || route === "./AddExpence" || route === "./AddCatgory" || route === "./EditBudget") {
       router.push(route);
     }
   };

@@ -2,15 +2,30 @@ const express = require("express");
 const router = express.Router();
 const Expense = require("../models/Expense");
 
-// **Ajouter une dépense (Create)**
+const moment = require('moment-timezone');
+
 router.post("/addExpense", async (req, res) => {
   try {
-    const { amount, date, description, categoryID, userID } = req.body;
-    const newExpense = new Expense({ amount, date, description, categoryID, userID });
+    const { amount, description, categoryID, userID } = req.body;
+    
+    // Get the current time in Morocco (Africa/Casablanca)
+    const date = moment().tz("Africa/Casablanca").toDate(); // Convert current time to Morocco local time
+    
+    const newExpense = new Expense({
+      amount, 
+      date, 
+      description, 
+      categoryID, 
+      userID
+    });
+
     const savedExpense = await newExpense.save();
     res.status(201).json(savedExpense);
   } catch (err) {
-    res.status(500).json({ message: "Erreur lors de la création de la dépense", error: err.message });
+    res.status(500).json({
+      message: "Erreur lors de la création de la dépense",
+      error: err.message,
+    });
   }
 });
 
@@ -54,6 +69,30 @@ router.delete("/deleteExpense/:id", async (req, res) => {
     res.status(200).json({ message: "Dépense supprimée avec succès" });
   } catch (err) {
     res.status(500).json({ message: "Erreur lors de la suppression de la dépense", error: err.message });
+  }
+});
+router.get("/getExpensesByDate", async (req, res) => {
+  try {
+    const { date } = req.query; // Assume the date is passed as a query parameter
+
+    // Convert the received date to Moroccan time
+    const startOfDay = moment.tz(date, "Africa/Casablanca").startOf('day').toDate();
+    const endOfDay = moment.tz(date, "Africa/Casablanca").endOf('day').toDate();
+
+    // Query the database to find expenses within the date range
+    const expenses = await Expense.find({
+      date: {
+        $gte: startOfDay, 
+        $lte: endOfDay
+      }
+    }).populate("categoryID userID");
+
+    res.status(200).json(expenses);
+  } catch (err) {
+    res.status(500).json({
+      message: "Erreur lors de la récupération des dépenses par date",
+      error: err.message,
+    });
   }
 });
 

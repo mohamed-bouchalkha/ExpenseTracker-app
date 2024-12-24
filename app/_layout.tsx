@@ -25,7 +25,6 @@ export default function RootLayout() {
           <Stack.Screen name="AddExpence" />
           <Stack.Screen name="AddCatgory" />
           <Stack.Screen name="EditBudget" />
-
         </Stack>
       </NativeBaseProvider>
     </Provider>
