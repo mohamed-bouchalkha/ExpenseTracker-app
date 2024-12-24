@@ -29,15 +29,27 @@ router.post("/addExpense", async (req, res) => {
   }
 });
 
-// **Récupérer toutes les dépenses (Read)**
 router.get("/getAllExpenses", async (req, res) => {
+  const { month } = req.query; // Obtenir le mois depuis les paramètres de la requête
   try {
-    const expenses = await Expense.find().populate("categoryID userID");
-    res.status(200).json(expenses);
-  } catch (err) {
-    res.status(500).json({ message: "Erreur lors de la récupération des dépenses", error: err.message });
+    // Si un mois est fourni, on filtre par date en fonction du mois
+    const startOfMonth = moment().month(month).startOf('month').toDate();  // Début du mois
+    const endOfMonth = moment().month(month).endOf('month').toDate();      // Fin du mois
+
+    const expenses = await Expense.find({
+      date: { $gte: startOfMonth, $lt: endOfMonth },
+    }).populate("categoryID userID");
+
+    // Calcul de la somme des montants
+    const totalAmount = expenses.reduce((acc, curr) => acc + curr.amount, 0);
+
+    res.status(200).json({ expenses, totalAmount });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur lors de la récupération des dépenses", error: error.message });
   }
 });
+
+
 
 // **Récupérer une dépense spécifique (Read)**
 router.get("/getExpense/:id", async (req, res) => {

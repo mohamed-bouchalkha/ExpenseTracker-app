@@ -1,48 +1,57 @@
 import React, { useState, useRef } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-} from "react-native";
+import { View, Text, FlatList, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import { FAB, Card, Avatar } from "react-native-paper";
 import { useRouter } from "expo-router";
 import moment from "moment";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import COLORS from "./utils/colors2"; // Make sure to import COLORS if you have it.
+import axios from "axios"; // Assurez-vous que axios est importé
+import COLORS from "./utils/colors2"; // Assurez-vous que COLORS est importé
+import API from "./utils/api"; // Assurez-vous que le chemin est correct
+
+// Définir l'interface Expense pour typer correctement les données des dépenses
+interface Expense {
+  id: number;
+  category: string;
+  amount: number;
+  date: string; // Utilisez "Date" si vous voulez utiliser des objets Date au lieu de chaînes
+}
 
 const HomeScreen = () => {
-  const [expenses, setExpenses] = useState([
-    { id: 1, category: "Food", amount: 50, date: "2024-12-20" },
-    { id: 2, category: "Transport", amount: 20, date: "2024-12-19" },
-  ]);
-  const [month, setMonth] = useState(moment().format("MMMM"));
+  // Déclarer l'état des dépenses avec le bon type
+  const [expenses, setExpenses] = useState<Expense[]>([]); // Spécifier le type Expense[]
+  const [totalExpenses, setTotalExpenses] = useState<number>(0); // Ajouter l'état pour le total des dépenses
+  const [month, setMonth] = useState<string>(moment().format("MMMM"));
+  const [activeFooter, setActiveFooter] = useState<string>("Home");
   const monthsScrollRef = useRef<ScrollView | null>(null);
   const router = useRouter();
 
-  const [isAddExpenseDisabled, setIsAddExpenseDisabled] = useState(false);
-  const [activeFooter, setActiveFooter] = useState("Home"); // Track active footer icon
-
-  const fetchExpensesHandler = async () => {
-    console.log("Fetching expenses...");
+  const fetchExpensesHandler = async (selectedMonth: string = "") => {
+    try {
+      const response = await API.get("api/expenses/getAllExpenses", {
+        params: { month: selectedMonth }
+      });
+      const expensesData: Expense[] = response.data.expenses;
+      const total = response.data.totalAmount;
+  
+      console.log("Fetched Expenses:", expensesData); // Check the fetched expenses data
+      console.log("Total Expenses:", total); // Check the total expenses value
+  
+      setExpenses(expensesData);
+      setTotalExpenses(total);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des dépenses:", error);
+    }
   };
+  
+  
+  
 
-  const updateMonthHandler = async (selectedMonth: React.SetStateAction<string>) => {
+  const updateMonthHandler = async (selectedMonth: string) => {
     setMonth(selectedMonth);
-    await fetchExpensesHandler();
+    await fetchExpensesHandler(selectedMonth);  // Recharger les dépenses après avoir changé le mois
   };
-
-  const topCategories = [
-    { id: 1, name: "Food", total: 250 },
-    { id: 2, name: "Transport", total: 150 },
-    { id: 3, name: "Utilities", total: 300 },
-  ];
-
+  
   const handleAddExpense = () => {
-   /*  setIsAddExpenseDisabled(true); for the disble the addEx */
-    setActiveFooter("Add");
     router.push("./AddExpence");
   };
 
@@ -53,63 +62,27 @@ const HomeScreen = () => {
     }
   };
 
-  interface FooterButtonProps {
-    icon: string;
-    label: string;
-    onPress: () => void;
-    active: boolean;
-    disabled?: boolean;
-  }
-
-  const FooterButton: React.FC<FooterButtonProps> = ({ icon, label, onPress, active, disabled }) => (
-    <TouchableOpacity
-      onPress={disabled ? () => {} : onPress}
-      style={{
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 10,
-      }}
-    >
-      <MaterialCommunityIcons
-        name={icon as any}
-        size={30}
-        color={active ? COLORS.YELLOW[400] : "white"}
-      />
-      <Text
-        style={{
-          fontSize: 12,
-          color: active ? COLORS.YELLOW[400] : "white",
-          fontWeight: active ? "bold" : "normal",
-        }}
-      >
+  const FooterButton: React.FC<{ icon: string; label: string; onPress: () => void; active: boolean; disabled?: boolean }> = ({
+    icon,
+    label,
+    onPress,
+    active,
+    disabled
+  }) => (
+    <TouchableOpacity onPress={disabled ? () => {} : onPress} style={{ alignItems: "center", justifyContent: "center", padding: 10 }}>
+      <MaterialCommunityIcons name={icon as any} size={30} color={active ? COLORS.YELLOW[400] : "white"} />
+      <Text style={{ fontSize: 12, color: active ? COLORS.YELLOW[400] : "white", fontWeight: active ? "bold" : "normal" }}>
         {label}
       </Text>
     </TouchableOpacity>
   );
+
   const Footer = () => (
     <View style={styles.footer}>
-      <FooterButton
-        icon="home"
-        label="Home"
-        onPress={() => handleFooterPress("Home", "/index")}
-        active={activeFooter === "Home"} disabled={undefined}      />
-      <FooterButton
-        icon="plus-circle"
-        label="Add"
-        onPress={handleAddExpense}
-        active={activeFooter === "Add"}
-        disabled={isAddExpenseDisabled}
-      />
-      <FooterButton
-        icon="account"
-        label="Profile"
-        onPress={() => handleFooterPress("Profile", "/AddCatgory")}
-        active={activeFooter === "Profile"} disabled={undefined}      />
-      <FooterButton
-        icon="history"
-        label="History"
-        onPress={() => handleFooterPress("History", "/EditBudget")}
-        active={activeFooter === "History"} disabled={undefined}      />
+      <FooterButton icon="home" label="Home" onPress={() => handleFooterPress("Home", "./Home")} active={true} />
+      <FooterButton icon="plus-circle" label="Add" onPress={handleAddExpense} active={false} />
+      <FooterButton icon="account" label="Profile" onPress={() => handleFooterPress("Profile", "./AddCatgory")} active={false} />
+      <FooterButton icon="history" label="History" onPress={() => handleFooterPress("History", "./EditBudget")} active={false} />
     </View>
   );
 
@@ -123,81 +96,40 @@ const HomeScreen = () => {
           contentContainerStyle={styles.monthsContainer}
         >
           {moment.months().map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => updateMonthHandler(item)}
-              style={[
-                styles.monthButton,
-                month === item && styles.activeMonthButton,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.monthText,
-                  month === item && styles.activeMonthText,
-                ]}
-              >
-                {item}
-              </Text>
+            <TouchableOpacity key={index} onPress={() => updateMonthHandler(item)} style={[styles.monthButton, month === item && styles.activeMonthButton]}>
+              <Text style={[styles.monthText, month === item && styles.activeMonthText]}>{item}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
 
-      <Card style={styles.summaryCard}>
-        <Card.Title
-          title={`Total Expenses: $${expenses.reduce(
-            (acc, curr) => acc + curr.amount,
-            0
-          )}`}
-          left={(props) => (
-            <Avatar.Icon {...props} icon="wallet" style={{ backgroundColor: "#6c5ce7" }} />
-          )}
-        />
-      </Card>
+      <Card.Title
+  title={`Total Expenses: $${totalExpenses || 0}`}  // Fallback to 0 if totalExpenses is undefined
+  left={(props) => <Avatar.Icon {...props} icon="wallet" style={{ backgroundColor: "#6c5ce7" }} />}
+/>
 
-      <Text style={styles.sectionTitle}>Top Spending Categories</Text>
-      <FlatList
-        data={topCategories}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <Card style={styles.categoryCard}>
-            <Card.Content>
-              <Text style={styles.categoryName}>{item.name}</Text>
-              <Text style={styles.categoryTotal}>${item.total}</Text>
-            </Card.Content>
-          </Card>
-        )}
-      />
+
 
       <Text style={styles.sectionTitle}>Recent Expenses</Text>
       <FlatList
-        data={expenses}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <Card style={styles.expenseCard}>
-            <Card.Content>
-              <View style={styles.expenseRow}>
-                <Text style={styles.expenseCategory}>{item.category}</Text>
-                <Text style={styles.expenseAmount}>${item.amount}</Text>
-              </View>
-              <Text style={styles.expenseDate}>
-                {moment(item.date).format("DD MMM YYYY")}
-              </Text>
-            </Card.Content>
-          </Card>
-        )}
-      />
+  data={expenses}
+  keyExtractor={(item, index) => `${item.id}-${index}`}  // Concatenate id and index to ensure uniqueness
+  renderItem={({ item }) => (
+    <Card style={styles.expenseCard}>
+      <Card.Content>
+        <View style={styles.expenseRow}>
+          <Text style={styles.expenseCategory}>{item.category}</Text>
+          <Text style={styles.expenseAmount}>${item.amount}</Text>
+        </View>
+        <Text style={styles.expenseDate}>{moment(item.date).format("DD MMM YYYY")}</Text>
+      </Card.Content>
+    </Card>
+  )}
+/>
 
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={handleAddExpense}
-        color="#fff"
-        label="Add Expense"
-      />
+
+
+      <FAB icon="plus" style={styles.fab} onPress={handleAddExpense} color="#fff" label="Add Expense" />
 
       <Footer />
     </View>
@@ -214,9 +146,6 @@ const styles = StyleSheet.create({
   activeMonthText: { color: "white" },
   summaryCard: { marginBottom: 20, backgroundColor: "#f3f4f6" },
   sectionTitle: { fontSize: 18, fontWeight: "bold", marginVertical: 10 },
-  categoryCard: { marginHorizontal: 8, padding: 10, borderRadius: 10 },
-  categoryName: { fontSize: 16, fontWeight: "bold" },
-  categoryTotal: { fontSize: 14, color: "gray" },
   expenseCard: { marginVertical: 8 },
   expenseRow: { flexDirection: "row", justifyContent: "space-between" },
   expenseCategory: { fontSize: 16, fontWeight: "bold" },
