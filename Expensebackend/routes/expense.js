@@ -30,24 +30,41 @@ router.post("/addExpense", async (req, res) => {
 });
 
 router.get("/getAllExpenses", async (req, res) => {
-  const { month } = req.query; // Obtenir le mois depuis les paramètres de la requête
   try {
-    // Si un mois est fourni, on filtre par date en fonction du mois
-    const startOfMonth = moment().month(month).startOf('month').toDate();  // Début du mois
-    const endOfMonth = moment().month(month).endOf('month').toDate();      // Fin du mois
+    const { month } = req.query; // Récupérer le mois depuis les paramètres de la requête
+    let expensesQuery = {};
 
-    const expenses = await Expense.find({
-      date: { $gte: startOfMonth, $lt: endOfMonth },
-    }).populate("categoryID userID");
+    if (month) {
+      // Si un mois est fourni, filtrez les dépenses en fonction du mois
+      const startOfMonth = moment(month, "MMMM").startOf("month").toDate();
+      const endOfMonth = moment(month, "MMMM").endOf("month").toDate();
 
-    // Calcul de la somme des montants
-    const totalAmount = expenses.reduce((acc, curr) => acc + curr.amount, 0);
+      expensesQuery = {
+        date: {
+          $gte: startOfMonth,
+          $lte: endOfMonth,
+        },
+      };
+    }
 
-    res.status(200).json({ expenses, totalAmount });
-  } catch (error) {
-    res.status(500).json({ message: "Erreur lors de la récupération des dépenses", error: error.message });
+    // Ici, nous utilisons `.populate("categoryID")` pour peupler les données de la catégorie
+    const expenses = await Expense.find(expensesQuery).populate("categoryID userID");
+
+    // Le champ `category` dans l'objet `Expense` contiendra maintenant l'objet peuplé avec `name` et `_id`
+    const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+
+    res.status(200).json({
+      expenses,
+      totalAmount,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Erreur lors de la récupération des dépenses",
+      error: err.message,
+    });
   }
 });
+
 
 
 
@@ -83,6 +100,9 @@ router.delete("/deleteExpense/:id", async (req, res) => {
     res.status(500).json({ message: "Erreur lors de la suppression de la dépense", error: err.message });
   }
 });
+
+
+
 router.get("/getExpensesByDate", async (req, res) => {
   try {
     const { date } = req.query; // Assume the date is passed as a query parameter
@@ -92,12 +112,8 @@ router.get("/getExpensesByDate", async (req, res) => {
     const endOfDay = moment.tz(date, "Africa/Casablanca").endOf('day').toDate();
 
     // Query the database to find expenses within the date range
-    const expenses = await Expense.find({
-      date: {
-        $gte: startOfDay, 
-        $lte: endOfDay
-      }
-    }).populate("categoryID userID");
+    const expenses = await Expense.find(expensesQuery).populate("categoryID userID");
+
 
     res.status(200).json(expenses);
   } catch (err) {

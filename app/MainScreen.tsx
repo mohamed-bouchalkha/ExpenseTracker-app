@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, FlatList, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
 import { FAB, Card, Avatar } from "react-native-paper";
 import { useRouter } from "expo-router";
 import moment from "moment";
@@ -10,11 +10,12 @@ import API from "./utils/api"; // Assurez-vous que le chemin est correct
 
 // Définir l'interface Expense pour typer correctement les données des dépenses
 interface Expense {
-  id: number;
-  category: string;
+  id: string;  // Remplacez par string si c'est un ObjectId, ou number si vous utilisez un identifiant numérique
+  categoryID: { name: string};  // Un objet contenant le nom et l'ID de la catégorie
   amount: number;
-  date: string; // Utilisez "Date" si vous voulez utiliser des objets Date au lieu de chaînes
+  date: string;  // Utilisez Date si vous préférez travailler avec des objets Date
 }
+
 
 const HomeScreen = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]); // Spécifier le type Expense[]
@@ -22,35 +23,31 @@ const HomeScreen = () => {
   const [month, setMonth] = useState<string>(""); // Initialement vide, pas de mois sélectionné
   const [activeFooter, setActiveFooter] = useState<string>("Home");
   const [loading, setLoading] = useState<boolean>(true); // Ajouter l'état de chargement
-  const monthsScrollRef = useRef<ScrollView | null>(null);
+  const monthsScrollRef = useRef<FlatList | null>(null);
   const router = useRouter();
 
-  // Fonction de récupération des dépenses
   const fetchExpensesHandler = async (selectedMonth: string = "") => {
     try {
-      setLoading(true);  // Début du chargement
+      setLoading(true); // Affichage du chargement
       const response = await API.get("api/expenses/getAllExpenses", {
-        params: { month: selectedMonth } // Si mois est vide, récupérer toutes les dépenses
+        params: selectedMonth ? { month: selectedMonth } : {}, // Inclure le paramètre seulement si un mois est sélectionné
       });
       const expensesData: Expense[] = response.data.expenses;
       const total = response.data.totalAmount;
-
-      console.log("Fetched Expenses:", expensesData); // Check the fetched expenses data
-      console.log("Total Expenses:", total); // Check the total expenses value
 
       setExpenses(expensesData);
       setTotalExpenses(total);
     } catch (error) {
       console.error("Erreur lors de la récupération des dépenses:", error);
     } finally {
-      setLoading(false);  // Fin du chargement
+      setLoading(false); // Fin du chargement
     }
   };
 
   // Mettre à jour le mois et recharger les dépenses
   const updateMonthHandler = async (selectedMonth: string) => {
     setMonth(selectedMonth);
-    await fetchExpensesHandler(selectedMonth);  // Recharger les dépenses après avoir changé le mois
+    await fetchExpensesHandler(selectedMonth); // Recharger les dépenses après avoir changé le mois
   };
 
   // Gérer l'ajout d'une dépense
@@ -61,21 +58,39 @@ const HomeScreen = () => {
   // Gérer la navigation du pied de page
   const handleFooterPress = (label: string, route: string) => {
     setActiveFooter(label);
-    if (route === "./Home" || route === "./AddExpence" || route === "./AddCatgory" || route === "./EditBudget") {
+    if (
+      route === "./Home" ||
+      route === "./AddExpence" ||
+      route === "./AddCatgory" ||
+      route === "./EditBudget"
+    ) {
       router.push(route);
     }
   };
 
-  const FooterButton: React.FC<{ icon: string; label: string; onPress: () => void; active: boolean; disabled?: boolean }> = ({
-    icon,
-    label,
-    onPress,
-    active,
-    disabled
-  }) => (
-    <TouchableOpacity onPress={disabled ? () => {} : onPress} style={{ alignItems: "center", justifyContent: "center", padding: 10 }}>
-      <MaterialCommunityIcons name={icon as any} size={30} color={active ? COLORS.YELLOW[400] : "white"} />
-      <Text style={{ fontSize: 12, color: active ? COLORS.YELLOW[400] : "white", fontWeight: active ? "bold" : "normal" }}>
+  const FooterButton: React.FC<{
+    icon: string;
+    label: string;
+    onPress: () => void;
+    active: boolean;
+    disabled?: boolean;
+  }> = ({ icon, label, onPress, active, disabled }) => (
+    <TouchableOpacity
+      onPress={disabled ? () => {} : onPress}
+      style={{ alignItems: "center", justifyContent: "center", padding: 10 }}
+    >
+      <MaterialCommunityIcons
+        name={icon as any}
+        size={30}
+        color={active ? COLORS.YELLOW[400] : "white"}
+      />
+      <Text
+        style={{
+          fontSize: 12,
+          color: active ? COLORS.YELLOW[400] : "white",
+          fontWeight: active ? "bold" : "normal",
+        }}
+      >
         {label}
       </Text>
     </TouchableOpacity>
@@ -83,71 +98,124 @@ const HomeScreen = () => {
 
   const Footer = () => (
     <View style={styles.footer}>
-      <FooterButton icon="home" label="Home" onPress={() => handleFooterPress("Home", "./Home")} active={true} />
-      <FooterButton icon="plus-circle" label="Add" onPress={handleAddExpense} active={false} />
-      <FooterButton icon="account" label="Profile" onPress={() => handleFooterPress("Profile", "./AddCatgory")} active={false} />
-      <FooterButton icon="history" label="History" onPress={() => handleFooterPress("History", "./EditBudget")} active={false} />
+      <FooterButton
+        icon="home"
+        label="Home"
+        onPress={() => handleFooterPress("Home", "./Home")}
+        active={true}
+      />
+      <FooterButton
+        icon="plus-circle"
+        label="Add"
+        onPress={handleAddExpense}
+        active={false}
+      />
+      <FooterButton
+        icon="account"
+        label="Profile"
+        onPress={() => handleFooterPress("Profile", "./AddCatgory")}
+        active={false}
+      />
+      <FooterButton
+        icon="history"
+        label="History"
+        onPress={() => handleFooterPress("History", "./EditBudget")}
+        active={false}
+      />
     </View>
   );
 
   useEffect(() => {
-    fetchExpensesHandler();  // Récupérer toutes les dépenses sans filtrer par mois au premier chargement
-    setMonth("Décembre"); // Définit "Décembre" comme mois par défaut après le premier chargement
+    // Charger toutes les dépenses au premier chargement sans filtrage
+    fetchExpensesHandler();
   }, []);
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <ScrollView
-          horizontal
-          ref={monthsScrollRef}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.monthsContainer}
-        >
-          {moment.months().map((item, index) => (
-            <TouchableOpacity key={index} onPress={() => updateMonthHandler(item)} style={[styles.monthButton, month === item && styles.activeMonthButton]}>
-              <Text style={[styles.monthText, month === item && styles.activeMonthText]}>{item}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+      <FlatList
+        ListHeaderComponent={
+          <>
+            <View style={styles.header}>
+              <FlatList
+                horizontal
+                ref={monthsScrollRef}
+                showsHorizontalScrollIndicator={false}
+                data={moment.months()}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    onPress={() => updateMonthHandler(item)}
+                    style={[
+                      styles.monthButton,
+                      month === item && styles.activeMonthButton,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.monthText,
+                        month === item && styles.activeMonthText,
+                      ]}
+                    >
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
 
-      {loading ? (
-        <Text>Loading...</Text>  // Affiche un message de chargement pendant la récupération des données
-      ) : (
-        <>
-          <Card.Title
-            title={`Total Expenses: $${totalExpenses || 0}`}  // Fallback à 0 si totalExpenses est undefined
-            left={(props) => <Avatar.Icon {...props} icon="wallet" style={{ backgroundColor: "#6c5ce7" }} />}
-          />
-
-          <Text style={styles.sectionTitle}>Recent Expenses</Text>
-          <FlatList
-            data={expenses}
-            keyExtractor={(item, index) => `${item.id}-${index}`}  // Concaténer id et index pour garantir l'unicité
-            renderItem={({ item }) => (
-              <Card style={styles.expenseCard}>
-                <Card.Content>
-                  <View style={styles.expenseRow}>
-                    <Text style={styles.expenseCategory}>{item.category}</Text>
-                    <Text style={styles.expenseAmount}>${item.amount}</Text>
-                  </View>
-                  <Text style={styles.expenseDate}>{moment(item.date).format("DD MMM YYYY")}</Text>
-                </Card.Content>
-              </Card>
+            {loading ? (
+              <Text>Loading...</Text>
+            ) : (
+              <>
+                <Card.Title
+                  title={`Total Expenses: $${totalExpenses || 0}`}
+                  left={(props) => (
+                    <Avatar.Icon
+                      {...props}
+                      icon="wallet"
+                      style={{ backgroundColor: "#6c5ce7" }}
+                    />
+                  )}
+                />
+                <Text style={styles.sectionTitle}>Recent Expenses</Text>
+              </>
             )}
-          />
-        </>
-      )}
-
-      <FAB icon="plus" style={styles.fab} onPress={handleAddExpense} color="#fff" label="Add Expense" />
+          </>
+        }
+        data={expenses}
+        keyExtractor={(item, index) => `${item.id}-${index}`}
+        renderItem={({ item }) => (
+          <Card style={styles.expenseCard}>
+            <Card.Content>
+              <View style={styles.expenseRow}>
+              <Text style={styles.expenseCategory}>{item.categoryID.name}</Text>
+              <Text style={styles.expenseAmount}>${item.amount}</Text>
+              </View>
+              <Text style={styles.expenseDate}>
+                {moment(item.date).format("DD MMM YYYY")}
+              </Text>
+            </Card.Content>
+          </Card>
+        )}
+      />
+      <FAB
+        icon="plus"
+        style={styles.fab}
+        onPress={handleAddExpense}
+        color="#fff"
+        label="Add Expense"
+      />
       <Footer />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 16 },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 16,
+  },
   header: { marginBottom: 20 },
   monthsContainer: { flexDirection: "row", alignItems: "center" },
   monthButton: { marginHorizontal: 10, padding: 10, borderRadius: 10 },
@@ -161,7 +229,12 @@ const styles = StyleSheet.create({
   expenseCategory: { fontSize: 16, fontWeight: "bold" },
   expenseAmount: { fontSize: 16, color: "red" },
   expenseDate: { fontSize: 14, color: "gray" },
-  fab: { position: "absolute", right: 16, bottom: 100, backgroundColor: "purple" },
+  fab: {
+    position: "absolute",
+    right: 16,
+    bottom: 100,
+    backgroundColor: "purple",
+  },
   footer: {
     backgroundColor: COLORS.PURPLE[600],
     height: 80,
@@ -179,6 +252,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+  },
+  scrollContent: {
+    paddingBottom: 100, // Ajoute un espace sous la barre de défilement
   },
 });
 
