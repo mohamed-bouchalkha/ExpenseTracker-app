@@ -47,7 +47,10 @@ router.get("/getAllExpenses", async (req, res) => {
       };
     }
 
+    // Ici, nous utilisons `.populate("categoryID")` pour peupler les données de la catégorie
     const expenses = await Expense.find(expensesQuery).populate("categoryID userID");
+
+    // Le champ `category` dans l'objet `Expense` contiendra maintenant l'objet peuplé avec `name` et `_id`
     const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0);
 
     res.status(200).json({
@@ -109,12 +112,8 @@ router.get("/getExpensesByDate", async (req, res) => {
     const endOfDay = moment.tz(date, "Africa/Casablanca").endOf('day').toDate();
 
     // Query the database to find expenses within the date range
-    const expenses = await Expense.find({
-      date: {
-        $gte: startOfDay, 
-        $lte: endOfDay
-      }
-    }).populate("categoryID userID");
+    const expenses = await Expense.find(expensesQuery).populate("categoryID userID");
+
 
     res.status(200).json(expenses);
   } catch (err) {

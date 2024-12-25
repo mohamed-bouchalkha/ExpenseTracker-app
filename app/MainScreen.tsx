@@ -10,11 +10,12 @@ import API from "./utils/api"; // Assurez-vous que le chemin est correct
 
 // Définir l'interface Expense pour typer correctement les données des dépenses
 interface Expense {
-  id: number;
-  category: string;
+  id: string;  // Remplacez par string si c'est un ObjectId, ou number si vous utilisez un identifiant numérique
+  categoryID: { name: string};  // Un objet contenant le nom et l'ID de la catégorie
   amount: number;
-  date: string; // Utilisez "Date" si vous voulez utiliser des objets Date au lieu de chaînes
+  date: string;  // Utilisez Date si vous préférez travailler avec des objets Date
 }
+
 
 const HomeScreen = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]); // Spécifier le type Expense[]
@@ -187,8 +188,8 @@ const HomeScreen = () => {
           <Card style={styles.expenseCard}>
             <Card.Content>
               <View style={styles.expenseRow}>
-                <Text style={styles.expenseCategory}>{item.category}</Text>
-                <Text style={styles.expenseAmount}>${item.amount}</Text>
+              <Text style={styles.expenseCategory}>{item.categoryID.name}</Text>
+              <Text style={styles.expenseAmount}>${item.amount}</Text>
               </View>
               <Text style={styles.expenseDate}>
                 {moment(item.date).format("DD MMM YYYY")}
