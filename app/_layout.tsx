@@ -18,13 +18,19 @@ export default function RootLayout() {
           <Stack.Screen name="Home" />
           <Stack.Screen name="LoginScreen" />
           <Stack.Screen name="SignupScreen" />
-          <Stack.Screen name="MainScreen" />
+          <Stack.Screen name="MainScreen" options={{
+              headerShown: false,
+            }} />
           <Stack.Screen name="EmailScreen" />
           <Stack.Screen name="ResetpasswordScreen" />
           <Stack.Screen name="VerifyEmailScreen" />
-          <Stack.Screen name="AddExpence" />
+          <Stack.Screen name="AddExpence"
+             options={{
+              headerShown: false,
+            }}/>
           <Stack.Screen name="AddCatgory" />
           <Stack.Screen name="EditBudget" />
+
         </Stack>
       </NativeBaseProvider>
     </Provider>
