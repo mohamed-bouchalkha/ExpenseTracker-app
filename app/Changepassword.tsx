@@ -1,8 +1,16 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  Alert,
+} from "react-native";
+import { useRouter } from "expo-router";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { useRouter } from "expo-router"; // Remove useSearchParams as it's not needed here
-import API from './utils/api';
+import AsyncStorage from "@react-native-async-storage/async-storage";  // Import de AsyncStorage
+import API from './utils/api';  // Import de ton API
 
 const ChangePasswordScreen = () => {
   const [oldPassword, setOldPassword] = useState("");
@@ -12,34 +20,56 @@ const ChangePasswordScreen = () => {
 
   const handleSubmit = async () => {
     if (!oldPassword || !newPassword || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields.');
+      Alert.alert("Error", "Please fill in all fields.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match.');
+      Alert.alert("Error", "Passwords do not match.");
       return;
     }
 
     try {
-      const response = await API.post('/change-password', {
-        oldPassword,
-        newPassword,
-      });
+      // Récupérer le token et l'ID utilisateur stockés dans AsyncStorage
+      const token = await AsyncStorage.getItem("authToken");
+      const userID = await AsyncStorage.getItem("userID");
+
+      if (!token) {
+        Alert.alert("Error", "User is not authenticated.");
+        return;
+      }
+
+      // Effectuer la requête API pour changer le mot de passe
+      const response = await API.post(
+        "/api/auth/change-password",
+        {
+          oldPassword,
+          newPassword,
+          userID,  // Passer l'ID utilisateur dans la requête
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,  // Ajouter le token dans les en-têtes pour l'authentification
+          },
+        }
+      );
 
       if (response.status === 200) {
-        Alert.alert('Success', 'Password changed successfully.');
-        router.replace('/LoginScreen'); // Redirect to the login page
+        Alert.alert("Success", "Password changed successfully.");
+        router.push("/LoginScreen");  // Redirige vers la page principale
       }
-    } catch (error: any) {
-      console.error('Error:', error.response?.data || error.message);
-      Alert.alert('Error', 'Failed to change password.');
+    } catch (error) {
+        console.error('Error:', (error as any).response?.data || error);
+      Alert.alert("Error", "Failed to change password.");
     }
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButtonWrapper} onPress={() => router.back()}>
+      <TouchableOpacity
+        style={styles.backButtonWrapper}
+        onPress={() => router.back()}
+      >
         <Ionicons name={"arrow-back-outline"} color={"#000"} size={25} />
       </TouchableOpacity>
 
@@ -48,7 +78,6 @@ const ChangePasswordScreen = () => {
       </View>
 
       <View style={styles.formContainer}>
-        {/* Old Password Input */}
         <View style={styles.inputContainer}>
           <Ionicons name={"lock-closed-outline"} size={30} color={"#999"} />
           <TextInput
@@ -60,7 +89,6 @@ const ChangePasswordScreen = () => {
           />
         </View>
 
-        {/* New Password Input */}
         <View style={styles.inputContainer}>
           <Ionicons name={"lock-closed-outline"} size={30} color={"#999"} />
           <TextInput
@@ -72,7 +100,6 @@ const ChangePasswordScreen = () => {
           />
         </View>
 
-        {/* Confirm New Password Input */}
         <View style={styles.inputContainer}>
           <Ionicons name={"lock-closed-outline"} size={30} color={"#999"} />
           <TextInput
@@ -84,7 +111,6 @@ const ChangePasswordScreen = () => {
           />
         </View>
 
-        {/* Submit Button */}
         <TouchableOpacity onPress={handleSubmit} style={styles.submitButtonWrapper}>
           <Text style={styles.submitText}>Change Password</Text>
         </TouchableOpacity>
@@ -93,26 +119,25 @@ const ChangePasswordScreen = () => {
   );
 };
 
-export default ChangePasswordScreen;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 20,
     backgroundColor: "#fff",
-    padding: 16,
   },
   backButtonWrapper: {
-    marginTop: 20,
-    marginLeft: 10,
+    position: "absolute",
+    top: 30,
+    left: 20,
   },
   textContainer: {
-    marginBottom: 20,
-    alignItems: "center",
+    marginTop: 80,
+    marginBottom: 40,
   },
   headingText: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#000",
+    textAlign: "center",
   },
   formContainer: {
     marginTop: 30,
@@ -120,25 +145,27 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+    borderBottomColor: "#ccc",
+    marginBottom: 20,
+    paddingHorizontal: 10,
   },
   textInput: {
     flex: 1,
-    height: 40,
+    paddingLeft: 10,
     fontSize: 16,
-    marginLeft: 10,
   },
   submitButtonWrapper: {
-    backgroundColor: "#4CAF50",
-    padding: 15,
+    backgroundColor: "#007BFF",
+    paddingVertical: 15,
     borderRadius: 5,
-    alignItems: "center",
+    marginTop: 20,
   },
   submitText: {
     color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 16,
+    textAlign: "center",
   },
 });
+
+export default ChangePasswordScreen;

@@ -27,6 +27,8 @@ const LoginScreen = () => {
     
         // Poursuivre avec la navigation ou autres actions
         console.log('User ID:', userID);
+        console.log('User token:', token);
+
         Alert.alert("Success", "Login Successful!");
         router.push("/MainScreen");  // Redirige vers la page MainScreen
       }
