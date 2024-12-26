@@ -17,7 +17,7 @@ import COLORS from "./utils/colors2";
 import API from "./utils/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
-
+import Footer from "./FooterNavigationComp";
 // Définir l'interface Expense pour typer correctement les données des dépenses
 interface Expense {
   id: string;
@@ -76,73 +76,14 @@ const HomeScreen = () => {
   const handleFooterPress = (label: string, route: string) => {
     setActiveFooter(label);
     if (
-      route === "./MainScreen" ||
-      route === "./AddExpence" ||
-      route === "./ProfileScreen" ||
-      route === "./EditBudget"
+      route === "/MainScreen" ||
+      route === "/AddExpence" ||
+      route === "/ProfileScreen" ||
+      route === "/EditBudget"
     ) {
       router.push(route);
     }
   };
-
-  const FooterButton: React.FC<{
-    icon: string;
-    label: string;
-    onPress: () => void;
-    active: boolean;
-    disabled?: boolean;
-  }> = ({ icon, label, onPress, active, disabled }) => (
-    <TouchableOpacity
-      onPress={disabled ? () => {} : onPress}
-      style={{ alignItems: "center", justifyContent: "center", padding: 10 }}
-    >
-      <MaterialCommunityIcons
-        name={icon as any}
-        size={30}
-        color={active ? COLORS.YELLOW[400] : "white"}
-      />
-      <Text
-        style={{
-          fontSize: 12,
-          color: active ? COLORS.YELLOW[400] : "white",
-          fontWeight: active ? "bold" : "normal",
-        }}
-      >
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const Footer = () => (
-    <View style={styles.footer}>
-      <FooterButton
-        icon="home"
-        label="Home"
-        onPress={() => handleFooterPress("Home", "./MainScreen")}
-        active={true}
-      />
-<FooterButton
-  icon="chart-line" // Replaced "plus-circle" with a graph icon
-  label="Graph"
-  onPress={handleAddExpense} // You can modify this to handle a graph-related action
-  active={false}
-/>
-
-      <FooterButton
-        icon="history"
-        label="History"
-        onPress={() => handleFooterPress("History", "./EditBudget")}
-        active={false}
-      />
-      <FooterButton
-        icon="account"
-        label="Profile"
-        onPress={() => handleFooterPress("Profile", "./ProfileScreen")}
-        active={false}
-      />
-
-    </View>
-  );
   useFocusEffect(
     React.useCallback(() => {
       const checkAuthStatus = async () => {
@@ -184,81 +125,82 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <FlatList
-        ListHeaderComponent={
-          <>
-            <View style={styles.header}>
-              <FlatList
-                horizontal
-                ref={monthsScrollRef}
-                showsHorizontalScrollIndicator={false}
-                data={moment.months()}
-                keyExtractor={(item) => item}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    onPress={() => updateMonthHandler(item)}
-                    style={[
-                      styles.monthButton,
-                      month === item && styles.activeMonthButton,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.monthText,
-                        month === item && styles.activeMonthText,
-                      ]}
-                    >
-                      {item}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              />
-            </View>
-
-            {loading ? (
-              <Text>Loading...</Text>
-            ) : (
-              <>
-                <Card.Title
-                  title={`Total Expenses: $${totalExpenses || 0}`}
-                  left={(props) => (
-                    <Avatar.Icon
-                      {...props}
-                      icon="wallet"
-                      style={{ backgroundColor: "#6c5ce7" }}
-                    />
-                  )}
-                />
-                <Text style={styles.sectionTitle}>Recent Expenses</Text>
-              </>
-            )}
-          </>
-        }
-        data={expenses}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
-        renderItem={({ item }) => (
-          <Card style={styles.expenseCard}>
-            <Card.Content>
-              <View style={styles.expenseRow}>
-                <Text style={styles.expenseCategory}>
-                  {item.categoryID.name}
-                </Text>
-                <Text style={styles.expenseAmount}>${item.amount}</Text>
-              </View>
-              <Text style={styles.expenseDate}>
-                {moment(item.date).format("DD MMM YYYY")}
+  contentContainerStyle={{ paddingBottom: 100 }} // Add padding to avoid overlap with footer
+  ListHeaderComponent={
+    <>
+      <View style={styles.header}>
+        <FlatList
+          horizontal
+          ref={monthsScrollRef}
+          showsHorizontalScrollIndicator={false}
+          data={moment.months()}
+          keyExtractor={(item) => item}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() => updateMonthHandler(item)}
+              style={[
+                styles.monthButton,
+                month === item && styles.activeMonthButton,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.monthText,
+                  month === item && styles.activeMonthText,
+                ]}
+              >
+                {item}
               </Text>
-            </Card.Content>
-          </Card>
-        )}
-      />
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+
+      {loading ? (
+        <Text>Loading...</Text>
+      ) : (
+        <>
+          <Card.Title
+            title={`Total Expenses: $${totalExpenses || 0}`}
+            left={(props) => (
+              <Avatar.Icon
+                {...props}
+                icon="wallet"
+                style={{ backgroundColor: "#6c5ce7" }}
+              />
+            )}
+          />
+          <Text style={styles.sectionTitle}>Recent Expenses</Text>
+        </>
+      )}
+    </>
+  }
+  data={expenses}
+  keyExtractor={(item, index) => `${item.id}-${index}`}
+  renderItem={({ item }) => (
+    <Card style={styles.expenseCard}>
+      <Card.Content>
+        <View style={styles.expenseRow}>
+          <Text style={styles.expenseCategory}>
+            {item.categoryID.name}
+          </Text>
+          <Text style={styles.expenseAmount}>${item.amount}</Text>
+        </View>
+        <Text style={styles.expenseDate}>
+          {moment(item.date).format("DD MMM YYYY")}
+        </Text>
+      </Card.Content>
+    </Card>
+  )}
+/>
+
       <FAB
         icon="plus"
         style={styles.fab}
         onPress={handleAddExpense}
         color="#fff"
-        label="Add Expense"
       />
-      <Footer />
+      <Footer activeFooter={activeFooter} handleFooterPress={handleFooterPress} />
     </View>
   );
 };
@@ -285,27 +227,16 @@ const styles = StyleSheet.create({
   fab: {
     position: "absolute",
     right: 16,
+    fontSize: 5,
     bottom: 100,
     backgroundColor: "purple",
+    width: 56, // Set width
+    height: 56, // Set height to the same value
+    borderRadius: 28, // Half of width/height for a circle
+    justifyContent: "center", // Center the icon inside
+    alignItems: "center", // Center the icon inside
   },
-  footer: {
-    backgroundColor: COLORS.PURPLE[600],
-    height: 80,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
+  
   scrollContent: {
     paddingBottom: 100,
   },

@@ -5,12 +5,14 @@ import { useRouter } from 'expo-router';
 import API from "./utils/api"; // Votre instance Axios
 import { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Footer from "./FooterNavigationComp";
 
 const ProfilePage = () => {
   const { colorMode, toggleColorMode } = useColorMode(); // For dark mode
   const [isDarkMode, setIsDarkMode] = useState(colorMode === 'dark');
   const toast = useToast();
   const router = useRouter();
+  const [activeFooter, setActiveFooter] = useState<string>("Profile");
 
   // Shared value for fade animation
   const fadeAnim = useSharedValue(0); // Initial opacity is 0 (fully transparent)
@@ -31,6 +33,18 @@ const ProfilePage = () => {
       variant: 'info',
       duration: 2000,
     });
+  };
+  
+  const handleFooterPress = (label: string, route: string) => {
+    setActiveFooter(label);
+    if (
+      route === "/MainScreen" ||
+      route === "/AddExpence" ||
+      route === "/ProfileScreen" ||
+      route === "/EditBudget"
+    ) {
+      router.push(route);
+    }
   };
 
   // Handle Change Password
@@ -59,73 +73,85 @@ const ProfilePage = () => {
   }, []);
 
   return (
-    <VStack flex={1} space={4} px={4} pt={6} bg="background" alignItems="center" justifyContent="center">
-      {/* Logo */}
-      <Box bg="purple.600" p={6} rounded="full" shadow={3} mb={6} style={animatedStyle}>
-        <Image
-          source={require("./assets/expenselogo.png")} // Replace with your actual logo URL or local asset
-          alt="App Logo"
-          size="xl"
-          resizeMode="contain"
-        />
-      </Box>
+    <VStack
+  flex={1}
+  space={4}
+  px={4}
+  pt={6}
+  pb={16} // Add padding at the bottom to avoid overlap with Footer
+  bg="background"
+  alignItems="center"
+  justifyContent="center"
+>
+  {/* Logo */}
+  <Box bg="purple.600" p={6} rounded="full" shadow={3} mb={6} style={animatedStyle}>
+    <Image
+      source={require("./assets/expenselogo.png")} // Replace with your actual logo URL or local asset
+      alt="App Logo"
+      size="xl"
+      resizeMode="contain"
+    />
+  </Box>
 
-      {/* Account Name */}
-      <Text fontSize="2xl" fontWeight="bold" color="gray.700" mb={4} style={animatedStyle}>
-        John Doe
-      </Text>
+  {/* Account Name */}
+  <Text fontSize="2xl" fontWeight="bold" color="gray.700" mb={4} style={animatedStyle}>
+    John Doe
+  </Text>
 
-      {/* Dark Mode Toggle */}
-      <HStack alignItems="center" space={2} mb={4}>
-        <Text fontSize="md" color="gray.700">
-          Dark Mode
-        </Text>
-        <Switch
-          isChecked={isDarkMode}
-          onToggle={handleDarkModeToggle}
-          colorScheme="purple"
-        />
-      </HStack>
+  {/* Dark Mode Toggle */}
+  <HStack alignItems="center" space={2} mb={4}>
+    <Text fontSize="md" color="gray.700">
+      Dark Mode
+    </Text>
+    <Switch
+      isChecked={isDarkMode}
+      onToggle={handleDarkModeToggle}
+      colorScheme="purple"
+    />
+  </HStack>
 
-      {/* Notification Button */}
-      <Button
-        mt={2}
-        variant="outline"
-        colorScheme="purple"
-        leftIcon={<Icon as={<Ionicons name="notifications" />} size="md" color="purple.600" />}
-        width="80%"
-        onPress={() => toast.show({ title: 'Notification settings!' })}
-        style={animatedStyle}
-      >
-        Notifications
-      </Button>
+  {/* Notification Button */}
+  <Button
+    mt={2}
+    variant="outline"
+    colorScheme="purple"
+    leftIcon={<Icon as={<Ionicons name="notifications" />} size="md" color="purple.600" />}
+    width="80%"
+    onPress={() => toast.show({ title: 'Notification settings!' })}
+    style={animatedStyle}
+  >
+    Notifications
+  </Button>
 
-      {/* Change Password Button */}
-      <Button
-        mt={4}
-        variant="solid"
-        colorScheme="purple"
-        leftIcon={<Icon as={<Ionicons name="key" />} size="md" color="white" />}
-        width="80%"
-        onPress={handleChangePassword}
-        style={animatedStyle}
-      >
-        Change Password
-      </Button>
+  {/* Change Password Button */}
+  <Button
+    mt={4}
+    variant="solid"
+    colorScheme="purple"
+    leftIcon={<Icon as={<Ionicons name="key" />} size="md" color="white" />}
+    width="80%"
+    onPress={handleChangePassword}
+    style={animatedStyle}
+  >
+    Change Password
+  </Button>
 
-      {/* Logout Button */}
-      <Button
-        mt={4}
-        variant="outline"
-        colorScheme="red"
-        leftIcon={<Icon as={<Ionicons name="log-out" />} size="md" color="red.600" />}
-        width="80%"
-        onPress={handleLogout}
-        style={animatedStyle}
-      >
-        Logout
-      </Button>
-    </VStack>
+  {/* Logout Button */}
+  <Button
+    mt={4}
+    variant="outline"
+    colorScheme="red"
+    leftIcon={<Icon as={<Ionicons name="log-out" />} size="md" color="red.600" />}
+    width="80%"
+    onPress={handleLogout}
+    style={animatedStyle}
+  >
+    Logout
+  </Button>
+
+  {/* Footer */}
+  <Footer activeFooter={activeFooter} handleFooterPress={handleFooterPress} />
+</VStack>
   );
 };
 

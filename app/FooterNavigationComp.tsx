@@ -14,26 +14,26 @@ const Footer: React.FC<FooterProps> = ({ activeFooter, handleFooterPress }) => (
     <FooterButton
       icon="home"
       label="Home"
-      onPress={() => handleFooterPress("MainScreen", "/MainScreen")}
+      onPress={() => handleFooterPress("Home", "/MainScreen")}
       active={activeFooter === "Home"}
     />
     <FooterButton
-      icon="plus-circle"
-      label="Add"
-      onPress={() => handleFooterPress("Add", "/AddExpence")}
-      active={activeFooter === "Add"}
-    />
-    <FooterButton
-      icon="account"
-      label="Profile"
-      onPress={() => handleFooterPress("Profile", "/ProfileScreen")}
-      active={activeFooter === "Profile"}
+      icon="chart-line"
+      label="Graph"
+      onPress={() => handleFooterPress("Graph", "/AddExpence")}
+      active={activeFooter === "Graph"}
     />
     <FooterButton
       icon="history"
       label="History"
       onPress={() => handleFooterPress("History", "/EditBudget")}
       active={activeFooter === "History"}
+    />
+    <FooterButton
+      icon="account"
+      label="Profile"
+      onPress={() => handleFooterPress("Profile", "/ProfileScreen")}
+      active={activeFooter === "Profile"}
     />
   </View>
 );
