@@ -35,7 +35,7 @@ const ProfilePage = () => {
 
   // Handle Change Password
   const handleChangePassword = () => {
-    router.push('/ChangePasswordScreen'); // Navigate to the Change Password page
+    router.push('/Changepassword'); // Navigate to the Change Password page
   };
 
   const handleLogout = async () => {
