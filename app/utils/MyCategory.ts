@@ -14,5 +14,5 @@ export const categories: Category[] = [
   { label: 'Bills', icon: 'document-text', color: 'teal.500', _id: '676c6c544fbd03dcae6f6743' },
   { label: 'Gifts', icon: 'gift', color: 'cyan.500', _id: '676c6c5b4fbd03dcae6f6746' },
   { label: 'Clothes', icon: 'shirt', color: 'pink.500', _id: '676c6c624fbd03dcae6f6749' },
-  { label: 'Autre', icon: 'ellipsis-horizontal', color: 'gray.500', _id: '676c6c6d4fbd03dcae6f6750' },
+  { label: 'Autre', icon: 'ellipsis-horizontal', color: 'gray.500', _id: '676d2d474a61e04ec248a10a' },
 ];
