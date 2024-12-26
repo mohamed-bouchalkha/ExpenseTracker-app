@@ -77,7 +77,7 @@ const HomeScreen = () => {
     setActiveFooter(label);
     if (
       route === "/MainScreen" ||
-      route === "/AddExpence" ||
+      route === "/GraphReportScreen" ||
       route === "/ProfileScreen" ||
       route === "/EditBudget"
     ) {

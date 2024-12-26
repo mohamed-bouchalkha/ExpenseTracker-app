@@ -17,20 +17,16 @@ export default function RootLayout() {
           /> 
           <Stack.Screen name="ChangePasswordScreen" />
           <Stack.Screen name="Home" />
-          <Stack.Screen name="LoginScreen" />
+          <Stack.Screen name="LoginScreen" options={{headerShown: false,}}/>
           <Stack.Screen name="SignupScreen" />
-          <Stack.Screen name="MainScreen" options={{
-              headerShown: false,
-            }} />
-          <Stack.Screen name="EmailScreen" />
-          <Stack.Screen name="ResetpasswordScreen" />
+          <Stack.Screen name="MainScreen" options={{headerShown: false,}} />
+          <Stack.Screen name="EmailScreen"/>
+          <Stack.Screen name="ResetpasswordScreen"/>
           <Stack.Screen name="VerifyEmailScreen" />
-          <Stack.Screen name="AddExpence"
-             options={{
-              headerShown: false,
-            }}/>
+          <Stack.Screen name="AddExpence"options={{headerShown: false,}}/>
           <Stack.Screen name="AddCatgory" />
           <Stack.Screen name="EditBudget" />
+          <Stack.Screen name="GraphReportScreen" />
           <Stack.Screen name="Changepassword" />
         </Stack>
       </NativeBaseProvider>
