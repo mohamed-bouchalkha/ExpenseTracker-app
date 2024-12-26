@@ -114,6 +114,20 @@ router.get("/getAllExpenses", async (req, res) => {
     });
   }
 });
+// Déconnexion d'un utilisateur
+router.post('/logout', async (req, res) => {
+  const { userID } = req.body; // ID utilisateur envoyé depuis le frontend
+
+  try {
+    // Mettre à jour le champ "isLoggedIn" de l'utilisateur à false (si utilisé)
+    await User.findByIdAndUpdate(userID, { isLoggedIn: false });
+
+    res.status(200).json({ message: 'Logout successful' });
+  } catch (err) {
+    console.error('Error during logout:', err);
+    res.status(500).json({ message: 'Server error during logout' });
+  }
+});
 
 
 

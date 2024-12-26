@@ -31,7 +31,7 @@ export default function RootLayout() {
             }}/>
           <Stack.Screen name="AddCatgory" />
           <Stack.Screen name="EditBudget" />
-         
+          <Stack.Screen name="Changepassword" />
         </Stack>
       </NativeBaseProvider>
     </Provider>

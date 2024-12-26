@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { VStack, HStack, Box, Text, Button, Switch, Icon, Image, useColorMode, useToast } from 'native-base';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import API from "./utils/api"; // Votre instance Axios
 import { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ProfilePage = () => {
   const { colorMode, toggleColorMode } = useColorMode(); // For dark mode
@@ -33,20 +35,24 @@ const ProfilePage = () => {
 
   // Handle Change Password
   const handleChangePassword = () => {
-    router.push('/ChangePasswordScreen'); // Navigate to the Change Password page
+    router.push('/Changepassword'); // Navigate to the Change Password page
   };
 
-  // Handle Logout
-  const handleLogout = () => {
-    // Implement logout functionality here
-    router.push('./LoginScreen'); // Navigate to the login page
-    toast.show({
-      title: 'Logged Out Successfully!',
-      variant: 'success',
-      duration: 2000,
-    });
+  const handleLogout = async () => {
+    try {
+      const userID = await AsyncStorage.getItem('userID');
+      if (!userID) throw new Error('User ID not found');
+  
+      await API.post('/api/auth/logout', { userID });
+      await AsyncStorage.multiRemove(['authToken', 'userID']);
+      router.replace('./LoginScreen');
+      toast.show({ title: 'Logged Out Successfully!', variant: 'success', duration: 2000 });
+    } catch (error) {
+      console.error('Logout Error:', error);
+      toast.show({ title: 'Logout Failed', variant: 'error', duration: 2000 });
+    }
   };
-
+  
   // Use effect to trigger fade-in on mount
   useEffect(() => {
     fadeAnim.value = 1; // Fade in after component mounts
