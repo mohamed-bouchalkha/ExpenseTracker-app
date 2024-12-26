@@ -61,7 +61,7 @@ const HomeScreen = () => {
     if (
       route === "./Home" ||
       route === "./AddExpence" ||
-      route === "./AddCatgory" ||
+      route === "./ProfileScreen" ||
       route === "./EditBudget"
     ) {
       router.push(route);
@@ -113,7 +113,7 @@ const HomeScreen = () => {
       <FooterButton
         icon="account"
         label="Profile"
-        onPress={() => handleFooterPress("Profile", "./AddCatgory")}
+        onPress={() => handleFooterPress("Profile", "./ProfileScreen")}
         active={false}
       />
       <FooterButton

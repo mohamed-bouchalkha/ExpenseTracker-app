@@ -14,7 +14,8 @@ export default function RootLayout() {
             options={{
               headerShown: false,
             }}
-          />
+          /> 
+          <Stack.Screen name="ChangePasswordScreen" />
           <Stack.Screen name="Home" />
           <Stack.Screen name="LoginScreen" />
           <Stack.Screen name="SignupScreen" />
@@ -30,7 +31,7 @@ export default function RootLayout() {
             }}/>
           <Stack.Screen name="AddCatgory" />
           <Stack.Screen name="EditBudget" />
-
+         
         </Stack>
       </NativeBaseProvider>
     </Provider>
