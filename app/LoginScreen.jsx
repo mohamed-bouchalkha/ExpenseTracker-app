@@ -1,5 +1,4 @@
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from "react-native";
-import React, { useState } from "react";
 import { colors } from "./utils/colors";
 import { fonts } from "./utils/fonts";
 import API from "./utils/api"; // Votre instance Axios
@@ -7,6 +6,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import SimpleLineIcons from "react-native-vector-icons/SimpleLineIcons";
 import { useRouter } from "expo-router";  // Importation de useRouter
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useState, useEffect } from "react";
 
 const LoginScreen = () => {
   const router = useRouter();  // Utilisation de useRouter pour la navigation
@@ -44,6 +44,15 @@ const LoginScreen = () => {
   const handleforget = () => {
     router.push("/EmailScreen"); // Redirige vers la page d'inscription
   };  
+  useEffect(() => {
+    const resetLoginState = async () => {
+      setEmail('');
+      setPassword('');
+      await AsyncStorage.clear(); // Supprime tous les éléments persistants.
+    };
+    resetLoginState();
+  }, []);
+  
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButtonWrapper} onPress={() => router.back()}>
