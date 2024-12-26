@@ -6,6 +6,7 @@ import API from "./utils/api"; // Votre instance Axios
 import Ionicons from "react-native-vector-icons/Ionicons";
 import SimpleLineIcons from "react-native-vector-icons/SimpleLineIcons";
 import { useRouter } from "expo-router";  // Importation de useRouter
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginScreen = () => {
   const router = useRouter();  // Utilisation de useRouter pour la navigation
@@ -16,8 +17,16 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     try {
       const response = await API.post("/api/auth/login", { email, password });
-
+  
       if (response.status === 200) {
+        const { token, userID } = response.data;
+  
+        // Stocker le token et l'ID utilisateur dans AsyncStorage ou dans un état global
+        await AsyncStorage.setItem('authToken', token);
+        await AsyncStorage.setItem('userID', userID);
+    
+        // Poursuivre avec la navigation ou autres actions
+        console.log('User ID:', userID);
         Alert.alert("Success", "Login Successful!");
         router.push("/MainScreen");  // Redirige vers la page MainScreen
       }

@@ -87,6 +87,16 @@ router.delete('/deleteCategory/:id', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+// Backend (route express)
+router.get("/categories", async (req, res) => {
+  try {
+    const categories = await Category.find(); // Supposons que Category est votre modèle Mongoose
+    res.status(200).json(categories); // Renvoie la liste des catégories
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Erreur lors de la récupération des catégories" });
+  }
+});
 
 
 module.exports = router;
