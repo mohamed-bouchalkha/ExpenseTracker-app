@@ -1,16 +1,37 @@
 const express = require("express");
 const router = express.Router();
-const Expense = require("../models/Expense");
-
+const jwt = require('jsonwebtoken');
+const Expense = require('../models/Expense');
 const moment = require('moment-timezone');
 
-router.post("/addExpense", async (req, res) => {
+router.post('/addExpense', async (req, res) => {
   try {
-    const { amount, description, categoryID, userID } = req.body;
-    
-    // Get the current time in Morocco (Africa/Casablanca)
-    const date = moment().tz("Africa/Casablanca").toDate(); // Convert current time to Morocco local time
-    
+    const { amount, description, categoryID } = req.body;
+
+    // Vérifier si le token est présent dans les headers
+    const token = req.headers['authorization']?.split(' ')[1]; // Récupérer le token depuis les headers
+    if (!token) {
+      return res.status(401).json({ message: 'Unauthorized: No token provided' });
+    }
+
+    // Vérifier et décoder le token pour obtenir l'ID de l'utilisateur
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET); // Utilisez la clé secrète pour vérifier le token
+    } catch (err) {
+      console.error("JWT Error:", err);
+      return res.status(401).json({ message: 'Invalid or malformed token', error: err.message });
+    }
+
+    const userID = decoded.id; // Accéder à l'ID de l'utilisateur depuis le token
+
+    // Vérifier si les autres données sont présentes
+    if (!amount || !categoryID || !userID) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const date = moment().tz("Africa/Casablanca").toDate();
+
     const newExpense = new Expense({
       amount, 
       date, 
@@ -22,6 +43,7 @@ router.post("/addExpense", async (req, res) => {
     const savedExpense = await newExpense.save();
     res.status(201).json(savedExpense);
   } catch (err) {
+    console.error(err);
     res.status(500).json({
       message: "Erreur lors de la création de la dépense",
       error: err.message,
@@ -29,28 +51,34 @@ router.post("/addExpense", async (req, res) => {
   }
 });
 
+
+// Récupérer les dépenses de l'utilisateur authentifié
 router.get("/getAllExpenses", async (req, res) => {
   try {
+    const userID = req.query.userID; // Récupérer l'ID de l'utilisateur depuis les paramètres de la requête
+
+    if (!userID) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
     const { month } = req.query; // Récupérer le mois depuis les paramètres de la requête
-    let expensesQuery = {};
+    let expensesQuery = { userID }; // Filtrer par l'ID de l'utilisateur authentifié
 
     if (month) {
       // Si un mois est fourni, filtrez les dépenses en fonction du mois
       const startOfMonth = moment(month, "MMMM").startOf("month").toDate();
       const endOfMonth = moment(month, "MMMM").endOf("month").toDate();
 
-      expensesQuery = {
-        date: {
-          $gte: startOfMonth,
-          $lte: endOfMonth,
-        },
+      expensesQuery.date = {
+        $gte: startOfMonth,
+        $lte: endOfMonth,
       };
     }
 
-    // Ici, nous utilisons `.populate("categoryID")` pour peupler les données de la catégorie
-    const expenses = await Expense.find(expensesQuery).populate("categoryID userID");
+    // Récupérer les dépenses de l'utilisateur authentifié
+    const expenses = await Expense.find(expensesQuery).populate("categoryID");
 
-    // Le champ `category` dans l'objet `Expense` contiendra maintenant l'objet peuplé avec `name` et `_id`
+    // Calculer le montant total des dépenses
     const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0);
 
     res.status(200).json({
@@ -58,6 +86,7 @@ router.get("/getAllExpenses", async (req, res) => {
       totalAmount,
     });
   } catch (err) {
+    console.error("Erreur lors de la récupération des dépenses:", err);
     res.status(500).json({
       message: "Erreur lors de la récupération des dépenses",
       error: err.message,
@@ -65,6 +94,7 @@ router.get("/getAllExpenses", async (req, res) => {
   }
 });
 
+ 
 
 
 

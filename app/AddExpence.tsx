@@ -18,6 +18,8 @@ import { useNavigation } from '@react-navigation/native';
 import { categories as importedCategories } from './utils/MyCategory';
 import { Category as ImportedCategory } from './utils/MyCategory';
 import CategoryButton from './CategoryButton'; // Correct default import
+import API from './utils/api'; // Assurez-vous que le chemin vers api.js est correct
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AddExpenseScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState<ImportedCategory | null>(null);
@@ -33,51 +35,97 @@ const AddExpenseScreen = () => {
     setAmount(value); // Update state only after debouncing
   }, []);
 
-  const handleSave = async () => {
-    if (!amount || !selectedCategory) {
-      toast.show({
-        title: 'Please enter an amount and select a category',
-        variant: 'solid',
-        duration: 3000,
-      });
-      return;
-    }
+// Dans le frontend (AddExpenseScreen)
+const handleSave = async () => {
+  if (!amount || !selectedCategory) {
+    toast.show({
+      title: 'Please enter an amount and select a category',
+      variant: 'solid',
+      duration: 3000,
+    });
+    return;
+  }
 
-    try {
-      const expenseData = {
-        amount: parseFloat(amount),
-        date: new Date(),
-        description,
-        categoryID: selectedCategory.id,
-        userID: 'userID123',
-      };
+  // Récupérer le token depuis AsyncStorage
+  const token = await AsyncStorage.getItem('authToken');  // Assurez-vous d'avoir le token dans AsyncStorage
 
-      const response = await axios.post('http://your-backend-url/api/expenses', expenseData);
+  if (!token) {
+    toast.show({
+      title: 'User not authenticated',
+      variant: 'solid',
+      duration: 3000,
+    });
+    return;
+  }
 
-      if (response.status === 201) {
-        toast.show({
-          title: 'Expense saved successfully!',
-          variant: 'solid',
-          duration: 3000,
-        });
-        setAmount('');
-        setDescription('');
-        setSelectedCategory(null);
+  // Récupérer l'ID utilisateur depuis AsyncStorage
+  const userID = await AsyncStorage.getItem('userID');  // Récupérer l'ID utilisateur
+
+  if (!userID) {
+    toast.show({
+      title: 'User not authenticated',
+      variant: 'solid',
+      duration: 3000,
+    });
+    return;
+  }
+
+  try {
+    // Préparation des données pour l'API
+    const expenseData = {
+      amount: parseFloat(amount),
+      date: new Date(),
+      description,
+      categoryID: selectedCategory._id,  // ID de la catégorie
+      userID: userID,  // Utiliser l'ID de l'utilisateur récupéré
+    };
+
+    // Log des données avant l'envoi à l'API
+    console.log("Selected category:", selectedCategory);
+    console.log("Expense data:", expenseData);
+
+    // Envoi des données à l'API
+    const response = await API.post(
+      '/api/expenses/addExpense',
+      expenseData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,  // Utilisez le token dans les headers
+        }
       }
-    } catch (error) {
-      console.error(error);
+    );
+
+    console.log("Response from API:", response);
+
+    if (response.status === 201) {
       toast.show({
-        title: 'Failed to save expense. Try again!',
+        title: 'Expense saved successfully!',
         variant: 'solid',
         duration: 3000,
       });
+      setAmount('');
+      setDescription('');
+      setSelectedCategory(null);
     }
-  };
+  } catch (error) {
+    console.error("Error saving expense:", error);
+    toast.show({
+      title: 'Failed to save expense. Try again!',
+      variant: 'solid',
+      duration: 3000,
+    });
+  }
+};
+
+
+
+
 
   const handleCategorySelect = (category: ImportedCategory) => {
     setSelectedCategory(category);
+    console.log(`Selected category ID: ${category._id}`); // Affiche l'ID dans la console
   };
-
+  
   const handleClose = () => {
     navigation.goBack();
   };
@@ -86,7 +134,7 @@ const AddExpenseScreen = () => {
   const renderCategoryItem = ({ item }: { item: ImportedCategory }) => (
     <CategoryButton
       category={item}
-      selected={selectedCategory?.id === item.id ? item : null}
+      selected={selectedCategory?._id === item._id ? item : null}
       onSelect={handleCategorySelect}
     />
   );
@@ -130,16 +178,15 @@ const AddExpenseScreen = () => {
 
       {/* FlatList for Category Buttons in Grid */}
       <FlatList
-        data={importedCategories}
-        renderItem={renderCategoryItem}
-        keyExtractor={(item) => item.id.toString()}
-        numColumns={3} // 3 categories per row
-        columnWrapperStyle={{ justifyContent: 'space-between' }} // Ensures even spacing across rows
-        showsVerticalScrollIndicator={false} // Hide vertical scroll indicator
-        contentContainerStyle={{
-          paddingBottom: 50, // Adds extra padding at the bottom for smoother scrolling
-        }}
-      />
+    data={importedCategories || []}
+    renderItem={renderCategoryItem}
+    keyExtractor={(item, index) => item._id?.toString() || index.toString()}
+    numColumns={3}
+    columnWrapperStyle={{ justifyContent: 'space-between' }}
+    showsVerticalScrollIndicator={false}
+    contentContainerStyle={{ paddingBottom: 50 }}
+/>
+
 
       <Box bg="white" p={4} shadow={2} borderRadius="lg">
         <Text fontSize="md" fontWeight="bold" color="gray.700">

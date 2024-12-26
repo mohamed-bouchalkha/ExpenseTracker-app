@@ -60,14 +60,61 @@ router.post('/login', async (req, res) => {
     });
 
     console.log(`Login successful: ${email}`);
+    
+    // Renvoi du token et de l'ID utilisateur
     res.status(200).json({
       message: 'Login successful',
       token,
+      userID: user._id,  // Renvoi de l'ID de l'utilisateur
     });
   } catch (err) {
     console.error('Error during login:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+// Récupérer les dépenses de l'utilisateur authentifié
+router.get("/getAllExpenses", async (req, res) => {
+  try {
+    const userID = req.query.userID; // Récupérer l'ID de l'utilisateur depuis les paramètres de la requête
+
+    if (!userID) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const { month } = req.query; // Récupérer le mois depuis les paramètres de la requête
+    let expensesQuery = { userID }; // Filtrer par l'ID de l'utilisateur authentifié
+
+    if (month) {
+      // Si un mois est fourni, filtrez les dépenses en fonction du mois
+      const startOfMonth = moment(month, "MMMM").startOf("month").toDate();
+      const endOfMonth = moment(month, "MMMM").endOf("month").toDate();
+
+      expensesQuery.date = {
+        $gte: startOfMonth,
+        $lte: endOfMonth,
+      };
+    }
+
+    // Récupérer les dépenses de l'utilisateur authentifié
+    const expenses = await Expense.find(expensesQuery).populate("categoryID");
+
+    // Calculer le montant total des dépenses
+    const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+
+    res.status(200).json({
+      expenses,
+      totalAmount,
+    });
+  } catch (err) {
+    console.error("Erreur lors de la récupération des dépenses:", err);
+    res.status(500).json({
+      message: "Erreur lors de la récupération des dépenses",
+      error: err.message,
+    });
+  }
+});
+
+
 
 module.exports = router;

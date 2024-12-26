@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet ,Alert} from "react-native";
 import { FAB, Card, Avatar } from "react-native-paper";
 import { useRouter } from "expo-router";
 import moment from "moment";
@@ -7,7 +7,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import axios from "axios"; // Assurez-vous que axios est importé
 import COLORS from "./utils/colors2"; // Assurez-vous que COLORS est importé
 import API from "./utils/api"; // Assurez-vous que le chemin est correct
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // Définir l'interface Expense pour typer correctement les données des dépenses
 interface Expense {
   id: string;  // Remplacez par string si c'est un ObjectId, ou number si vous utilisez un identifiant numérique
@@ -29,12 +29,24 @@ const HomeScreen = () => {
   const fetchExpensesHandler = async (selectedMonth: string = "") => {
     try {
       setLoading(true); // Affichage du chargement
+      const token = await AsyncStorage.getItem('authToken'); // Récupérer le token depuis AsyncStorage
+      const userID = await AsyncStorage.getItem('userID'); // Récupérer l'ID de l'utilisateur depuis AsyncStorage
+  
+      if (!token || !userID) {
+        throw new Error('No token or userID found');
+      }
+  
+      // Envoyer le token dans les en-têtes de la requête pour l'authentification
       const response = await API.get("api/expenses/getAllExpenses", {
-        params: selectedMonth ? { month: selectedMonth } : {}, // Inclure le paramètre seulement si un mois est sélectionné
+        headers: {
+          Authorization: `Bearer ${token}`, // Ajouter le token JWT dans les headers
+        },
+        params: { userID, month: selectedMonth }, // Ajouter l'ID utilisateur et éventuellement le mois
       });
+  
       const expensesData: Expense[] = response.data.expenses;
       const total = response.data.totalAmount;
-
+  
       setExpenses(expensesData);
       setTotalExpenses(total);
     } catch (error) {
@@ -43,6 +55,7 @@ const HomeScreen = () => {
       setLoading(false); // Fin du chargement
     }
   };
+  
 
   // Mettre à jour le mois et recharger les dépenses
   const updateMonthHandler = async (selectedMonth: string) => {
