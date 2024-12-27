@@ -9,6 +9,24 @@ const moment = require('moment-timezone');
 const authenticateUser = require("../middlewares/authenticateUser");
 const mongoose = require('mongoose');
 
+// **Récupérer une dépense spécifique (Read)**
+router.get("/getExpense/:id", async (req, res) => {
+  try {
+    // Retrieve the expense using the ID passed in the URL parameter
+    const expense = await Expense.findById(req.params.id).populate("categoryID userID");
+    
+    // If the expense is not found, return a 404 error
+    if (!expense) {
+      return res.status(404).json({ message: "Dépense non trouvée" });
+    }
+    
+    // If found, return the expense data
+    res.status(200).json(expense);
+  } catch (err) {
+    // If an error occurs during the process, return a 500 error
+    res.status(500).json({ message: "Erreur lors de la récupération de la dépense", error: err.message });
+  }
+});
 
 router.get('/expenses-summary', async (req, res) => {
   try {
