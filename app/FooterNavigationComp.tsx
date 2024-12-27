@@ -6,7 +6,7 @@ import COLORS from "./utils/colors2";
 // Define the Footer component prop types
 interface FooterProps {
   activeFooter: string;
-  handleFooterPress: (label: string, route: "/MainScreen" | "/GraphReportScreen" | "/ProfileScreen" | "/EditBudget") => void;
+  handleFooterPress: (label: string, route: "/MainScreen" | "/GraphReportScreen" | "/ProfileScreen" | "/HistoryPage") => void;
 }
 
 const Footer: React.FC<FooterProps> = ({ activeFooter, handleFooterPress }) => (
@@ -26,7 +26,7 @@ const Footer: React.FC<FooterProps> = ({ activeFooter, handleFooterPress }) => (
     <FooterButton
       icon="history"
       label="History"
-      onPress={() => handleFooterPress("History", "/EditBudget")}
+      onPress={() => handleFooterPress("History", "/HistoryPage")}
       active={activeFooter === "History"}
     />
     <FooterButton

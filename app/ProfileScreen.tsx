@@ -2,17 +2,49 @@ import React, { useState, useEffect } from 'react';
 import { VStack, HStack, Box, Text, Button, Switch, Icon, Image, useColorMode, useToast } from 'native-base';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import API from "./utils/api"; // Votre instance Axios
+import API from "./utils/api"; // Your Axios instance
 import { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Footer from "./FooterNavigationComp";
+import { useNavigationState } from '@react-navigation/native';
+import { BackHandler } from 'react-native';
 
 const ProfilePage = () => {
   const { colorMode, toggleColorMode } = useColorMode(); // For dark mode
-  const [isDarkMode, setIsDarkMode] = useState(colorMode === 'dark');
   const toast = useToast();
   const router = useRouter();
   const [activeFooter, setActiveFooter] = useState<string>("Profile");
+
+   // Use useNavigationState to track the current route
+   const currentRoute = useNavigationState((state) => state.routes[state.index].name);
+
+   useEffect(() => {
+     // Update activeFooter based on currentRoute
+     if (currentRoute === "ProfileScreen") {
+       setActiveFooter("Profile");
+     } else if (currentRoute === "GraphReportScreen") {
+       setActiveFooter("Graph");
+     } else if (currentRoute === "HistoryPage") {
+       setActiveFooter("History");
+     } else if (currentRoute === "MainScreen") {
+       setActiveFooter("Home");
+     }
+ 
+     const onBackPress = () => {
+       // Handle back button press if necessary
+       // Optionally, add logic to handle confirmation for exit
+       return false; // Prevent default back action (optional)
+     };
+ 
+     BackHandler.addEventListener("hardwareBackPress", onBackPress);
+ 
+     return () => {
+       BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+     };
+   }, [currentRoute]); // Re-run whenever the route changes
+ 
+  // User status state (active or not)
+  const [isActive, setIsActive] = useState(true); // Default: active
 
   // Shared value for fade animation
   const fadeAnim = useSharedValue(0); // Initial opacity is 0 (fully transparent)
@@ -27,21 +59,20 @@ const ProfilePage = () => {
   // Handle Dark Mode Toggle
   const handleDarkModeToggle = () => {
     toggleColorMode(); // This toggles between light and dark mode
-    setIsDarkMode((prevMode) => !prevMode); // Update state for dark mode
     toast.show({
-      title: isDarkMode ? 'Light Mode Enabled' : 'Dark Mode Enabled',
+      title: colorMode === 'dark' ? 'Light Mode Enabled' : 'Dark Mode Enabled',
       variant: 'info',
       duration: 2000,
     });
   };
-  
+
   const handleFooterPress = (label: string, route: string) => {
     setActiveFooter(label);
     if (
       route === "/MainScreen" ||
       route === "/GraphReportScreen" ||
       route === "/ProfileScreen" ||
-      route === "/EditBudget"
+      route === "/HistoryPage"
     ) {
       router.push(route);
     }
@@ -56,7 +87,7 @@ const ProfilePage = () => {
     try {
       const userID = await AsyncStorage.getItem('userID');
       if (!userID) throw new Error('User ID not found');
-  
+
       await API.post('/api/auth/logout', { userID });
       await AsyncStorage.multiRemove(['authToken', 'userID']);
       router.replace('./LoginScreen');
@@ -66,7 +97,7 @@ const ProfilePage = () => {
       toast.show({ title: 'Logout Failed', variant: 'error', duration: 2000 });
     }
   };
-  
+
   // Use effect to trigger fade-in on mount
   useEffect(() => {
     fadeAnim.value = 1; // Fade in after component mounts
@@ -74,84 +105,92 @@ const ProfilePage = () => {
 
   return (
     <VStack
-  flex={1}
-  space={4}
-  px={4}
-  pt={6}
-  pb={16} // Add padding at the bottom to avoid overlap with Footer
-  bg="background"
-  alignItems="center"
-  justifyContent="center"
->
-  {/* Logo */}
-  <Box bg="purple.600" p={6} rounded="full" shadow={3} mb={6} style={animatedStyle}>
-    <Image
-      source={require("./assets/expenselogo.png")} // Replace with your actual logo URL or local asset
-      alt="App Logo"
-      size="xl"
-      resizeMode="contain"
-    />
-  </Box>
+      flex={1}
+      space={4}
+      px={4}
+      pt={6}
+      pb={16} // Add padding at the bottom to avoid overlap with Footer
+      bg={colorMode === 'dark' ? 'gray.800' : 'white'} // Change background color based on dark mode
+      alignItems="center"
+      justifyContent="center"
+    >
+      {/* Logo */}
+      <Box bg="purple.600" p={6} rounded="full" shadow={3} mb={6} style={animatedStyle}>
+        <Image
+          source={require("./assets/expenselogo.png")} // Replace with your actual logo URL or local asset
+          alt="App Logo"
+          size="xl"
+          resizeMode="contain"
+        />
+      </Box>
 
-  {/* Account Name */}
-  <Text fontSize="2xl" fontWeight="bold" color="gray.700" mb={4} style={animatedStyle}>
-    John Doe
-  </Text>
+      {/* Account Name with Activity Status */}
+      <HStack alignItems="center" space={2} mb={4} style={animatedStyle}>
+        <Text fontSize="2xl" fontWeight="bold" color={colorMode === 'dark' ? 'white' : 'gray.700'}>
+          John Doe
+        </Text>
+        <Box
+          bg={isActive ? "green.500" : "red.500"}
+          size={3}
+          borderRadius="full"
+          ml={2}
+        />
+      </HStack>
 
-  {/* Dark Mode Toggle */}
-  <HStack alignItems="center" space={2} mb={4}>
-    <Text fontSize="md" color="gray.700">
-      Dark Mode
-    </Text>
-    <Switch
-      isChecked={isDarkMode}
-      onToggle={handleDarkModeToggle}
-      colorScheme="purple"
-    />
-  </HStack>
+      {/* Dark Mode Toggle */}
+      <HStack alignItems="center" space={2} mb={4}>
+        <Text fontSize="md" color={colorMode === 'dark' ? 'white' : 'gray.700'}>
+          Dark Mode
+        </Text>
+        <Switch
+          isChecked={colorMode === 'dark'}
+          onToggle={handleDarkModeToggle}
+          colorScheme="purple"
+        />
+      </HStack>
 
-  {/* Notification Button */}
-  <Button
-    mt={2}
-    variant="outline"
-    colorScheme="purple"
-    leftIcon={<Icon as={<Ionicons name="notifications" />} size="md" color="purple.600" />}
-    width="80%"
-    onPress={() => toast.show({ title: 'Notification settings!' })}
-    style={animatedStyle}
-  >
-    Notifications
-  </Button>
+      {/* Notification Button */}
+      <Button
+        mt={2}
+        variant="outline"
+        colorScheme="purple"
+        leftIcon={<Icon as={<Ionicons name="notifications" />} size="md" color="purple.600" />}
+        width="80%"
+        onPress={() => toast.show({ title: 'Notification settings!' })}
+        style={animatedStyle}
+      >
+        Notifications
+      </Button>
 
-  {/* Change Password Button */}
-  <Button
-    mt={4}
-    variant="solid"
-    colorScheme="purple"
-    leftIcon={<Icon as={<Ionicons name="key" />} size="md" color="white" />}
-    width="80%"
-    onPress={handleChangePassword}
-    style={animatedStyle}
-  >
-    Change Password
-  </Button>
+      {/* Change Password Button */}
+      <Button
+        mt={4}
+        variant="solid"
+        colorScheme="purple"
+        leftIcon={<Icon as={<Ionicons name="key" />} size="md" color="white" />}
+        width="80%"
+        onPress={handleChangePassword}
+        style={animatedStyle}
+      >
+        Change Password
+      </Button>
 
-  {/* Logout Button */}
-  <Button
-    mt={4}
-    variant="outline"
-    colorScheme="red"
-    leftIcon={<Icon as={<Ionicons name="log-out" />} size="md" color="red.600" />}
-    width="80%"
-    onPress={handleLogout}
-    style={animatedStyle}
-  >
-    Logout
-  </Button>
+      {/* Logout Button */}
+      <Button
+        mt={4}
+        variant="outline"
+        colorScheme="red"
+        leftIcon={<Icon as={<Ionicons name="log-out" />} size="md" color="red.600" />}
+        width="80%"
+        onPress={handleLogout}
+        style={animatedStyle}
+      >
+        Logout
+      </Button>
 
-  {/* Footer */}
-  <Footer activeFooter={activeFooter} handleFooterPress={handleFooterPress} />
-</VStack>
+      {/* Footer */}
+      <Footer activeFooter={activeFooter} handleFooterPress={handleFooterPress} />
+    </VStack>
   );
 };
 
