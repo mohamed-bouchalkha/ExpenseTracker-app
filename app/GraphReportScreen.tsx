@@ -1,19 +1,72 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { View, Text, StyleSheet, Dimensions, FlatList } from "react-native";
 import { PieChart } from "react-native-chart-kit";
 import { useRouter } from "expo-router";
 import Footer from "./FooterNavigationComp";
 import { VStack } from "native-base";
+import { Icon } from "react-native-elements";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "./utils/api";
 import { categories} from './utils/MyCategory';
 
+// const data2 = [
+//   {
+//     name: "Grocery",
+//     icon: "cart",
+//     amount: 109.18,
+//     color: "#3366FF",
+//     percent: "14.61%",
+//     expenses: 3,
+//   },
+//   {
+//     name: "Fuel",
+//     icon: "car",
+//     amount: 100.0,
+//     color: "#00CC66",
+//     percent: "13.39%",
+//     expenses: 1,
+//   },
+//   {
+//     name: "Travel",
+//     icon: "airplane",
+//     amount: 200.0,
+//     color: "#FFCC00",
+//     percent: "26.77%",
+//     expenses: 1,
+//   },
+//   {
+//     name: "Bills",
+//     icon: "document",
+//     amount: 70.0,
+//     color: "#00CCCC",
+//     percent: "9.37%",
+//     expenses: 1,
+//   },
+//   {
+//     name: "Clothes",
+//     icon: "shirt",
+//     amount: 267.89,
+//     color: "#FF3399",
+//     percent: "35.86%",
+//     expenses: 1,
+//   },
+// ];
 interface Expense {
   categoryID?: { name: string };
   amount: number;
 }
 
-export const fetchExpenses = async () => {
+
+
+const GraphReportScreen = () => {
+  const [expensesSummary, setExpensesSummary] = useState([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeFooter, setActiveFooter] = useState<string>("Graph");
+  const router = useRouter();
+
+   const fetchExpenses = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken"); // Récupère le token stocké
   
@@ -29,14 +82,6 @@ export const fetchExpenses = async () => {
       throw error;
     }
   };
-
-const GraphReportScreen = () => {
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeFooter, setActiveFooter] = useState<string>("Graph");
-  const router = useRouter();
-
   const handleFooterPress = (label: string, route: string) => {
     setActiveFooter(label);
     if (
@@ -48,8 +93,6 @@ const GraphReportScreen = () => {
       router.push(route);
     }
   };
-  
-
   const colorMap: { [key: string]: string } = {
     "blue.500": "#3182CE",
     "green.500": "#38A169",
@@ -61,40 +104,22 @@ const GraphReportScreen = () => {
     "pink.500": "#D53F8C",
     "gray.500": "#A0AEC0",
   };
-  
   const getColorForCategory = (category: string) => {
     const foundCategory = categories.find((cat) => cat.label === category);
     const colorKey = foundCategory ? foundCategory.color : "gray.500";
     return colorMap[colorKey] || "#A0AEC0"; // Par défaut, retourne le gris hexadécimal
   };
-  // const getColorForCategory = (category: string) => {
-  //   const hash = category
-  //     .split("")
-  //     .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  //   const letters = "0123456789ABCDEF";
-  //   let color = "#";
-  //   for (let i = 0; i < 6; i++) {
-  //     color += letters[(hash + i) % 16];
-  //   }
-  //   return color;
-  // };
-
-  
-
-  useEffect(() => {
-    const loadExpenses = async () => {
-      try {
-        const data = await fetchExpenses();
-        setExpenses(data);
-      } catch (err) {
-        console.error("Erreur lors du chargement des dépenses:", err);
-        setError("Impossible de charger les données.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadExpenses();
-  }, []);
+  const loadExpenses = async () => {
+    try {
+      const data = await fetchExpenses();
+      setExpenses(data);
+    } catch (err) {
+      console.error("Erreur lors du chargement des dépenses:", err);
+      setError("Impossible de charger les données.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const chartData = expenses.map((expense) => ({
     name: expense.categoryID?.name || "Autre",
@@ -108,6 +133,55 @@ const GraphReportScreen = () => {
     (total, expense) => total + expense.amount,
     0
   );
+  const fetchExpensesSummary = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken"); // Récupère le token JWT de l'utilisateur
+      if (!token) {
+        console.log('Token manquant');
+        return;
+      }
+  
+      const response = await API.get("/api/expenses/expenses-summary", {
+        headers: {
+          Authorization: `Bearer ${token}`, // Envoi du token pour authentifier l'utilisateur
+        },
+      });
+  
+      setExpensesSummary(response.data); // Met à jour le résumé des dépenses dans l'état
+    } catch (err) {
+      console.error("Erreur lors de la récupération des données:", err);
+      setError("Impossible de charger les données.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
+
+  const transformedData = expensesSummary.map((expense: any) => {
+    // Rechercher la catégorie correspondante
+    const matchedCategory = categories.find(
+      (cat) => cat._id === expense.categoryID
+    ) || categories.find((cat) => cat.label === 'Autre'); // Catégorie par défaut
+  
+    // Retourner un nouvel objet enrichi
+    return {
+      name: expense.name, // Conserve le nom depuis le backend
+      categoryID: expense.categoryID, // ID de catégorie
+      amount: expense.amount, // Montant
+      expenses: expense.expenses, // Détails des dépenses
+      icon: matchedCategory?.icon || 'help', // Icône de la catégorie ou par défaut
+      color: matchedCategory?.color || 'gray.500', // Couleur de la catégorie ou par défaut
+    };
+  });
+  
+  console.log(transformedData);
+  
+  useEffect(() => {
+    fetchExpensesSummary();
+
+    loadExpenses();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -143,6 +217,32 @@ const GraphReportScreen = () => {
             </>
           )}
         </View>
+
+          {/* Categories List */}
+          <FlatList
+          data={transformedData}
+          keyExtractor={(item) => item.name}
+          renderItem={({ item }) => (
+            <View style={styles.itemContainer}>
+              <View
+                style={[styles.iconContainer, { backgroundColor: item.color }]}
+              >
+                <Icon name={item.icon} size={24} color="#fff" />
+              </View>
+              <View style={styles.infoContainer}>
+                <Text style={styles.itemTitle}>{item.name}</Text>
+                <Text style={styles.itemSubtitle}>{item.expenses} dépenses</Text>
+              </View>
+              <Text style={styles.itemAmount}>
+                ${item.amount.toFixed(2)}
+              </Text>
+            </View>
+          )}
+        />
+
+
+
+
       </View>
 
       <VStack>
@@ -168,6 +268,37 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
+  itemAmount: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  itemTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  infoContainer: {
+    flex: 1,
+    marginLeft: 10,
+  },
+  itemSubtitle: {
+    fontSize: 12,
+    color: "#666",
+  },
+  itemContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    marginVertical: 5,
+    marginHorizontal: 10,
+    borderRadius: 10,
+    padding: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+  },
   bodyContainer: {
     flex: 1,
     marginBottom: 80,
@@ -182,6 +313,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#333",
+  },
+  iconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
