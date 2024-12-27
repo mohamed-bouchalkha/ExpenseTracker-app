@@ -10,6 +10,8 @@ import { useNavigationState } from '@react-navigation/native';
 import { BackHandler } from 'react-native';
 
 const ProfilePage = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   const { colorMode, toggleColorMode } = useColorMode(); // For dark mode
   const toast = useToast();
   const router = useRouter();
@@ -121,6 +123,16 @@ const ProfilePage = () => {
   
   // Use effect to trigger fade-in on mount
   useEffect(() => {
+    const checkAuthentication = async () => {
+      const token = await AsyncStorage.getItem("authToken");
+      if (token) {
+        setIsAuthenticated(true); // L'utilisateur est connecté
+      } else {
+        setIsAuthenticated(false); // L'utilisateur n'est pas connecté
+      }
+    };
+  
+    checkAuthentication();
     fadeAnim.value = 1; // Fade in after component mounts
     fetchUserProfile(); // Fetch the user profile when the component mounts
 
@@ -145,6 +157,7 @@ const ProfilePage = () => {
           size="xl"
           resizeMode="contain"
         />
+        
       </Box>
 
       {/* Account Name with Activity Status */}
@@ -153,12 +166,13 @@ const ProfilePage = () => {
   {userName ? userName : 'Loading...'}
 </Text>
 
-        <Box
-          bg={isActive ? "green.500" : "red.500"}
-          size={3}
-          borderRadius="full"
-          ml={2}
-        />
+<Box
+  bg={isAuthenticated ? "green.500" : "red.500"}
+  size={3}
+  borderRadius="full"
+  ml={2}
+/>
+
       </HStack>
 
       {/* Dark Mode Toggle */}
