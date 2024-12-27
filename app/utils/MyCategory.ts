@@ -2,7 +2,7 @@ export interface Category {
   label: string;
   icon: string;
   color: string;
-  _id: string; // Remplacez "id" par "_id"
+  _id: string; 
 }
 
 export const categories: Category[] = [

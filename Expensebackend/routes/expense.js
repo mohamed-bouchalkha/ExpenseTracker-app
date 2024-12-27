@@ -2,7 +2,84 @@ const express = require("express");
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const Expense = require('../models/Expense');
+const Category = require('../models/Category');
+
 const moment = require('moment-timezone');
+const authenticateUser = require("../middlewares/authenticateUser");
+const mongoose = require('mongoose');
+
+
+router.get('/expenses-summary', async (req, res) => {
+  try {
+    // Vérification du token JWT dans les en-têtes
+    const token = req.headers.authorization?.split(' ')[1]; // Récupère le token du header Authorization
+    if (!token) {
+      return res.status(401).json({ message: 'Accès non autorisé, token manquant' });
+    }
+
+    // Vérification du token JWT et récupération de l'ID de l'utilisateur
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.id; // ID de l'utilisateur depuis le token
+
+    // Récupère les catégories pour cet utilisateur
+    const categories = await Category.find(); // Peut être filtré par utilisateur si nécessaire
+
+    // Générer le résumé des dépenses pour chaque catégorie
+    const summary = await Promise.all(categories.map(async (category) => {
+      // Récupère les dépenses de l'utilisateur pour cette catégorie
+      const expenses = await Expense.find({ categoryID: category._id, userID: userId });
+      const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+      return {
+        name: category.name, // Retourne le nom de la catégorie
+        categoryID: category._id,
+        amount: totalAmount,
+        expenses: expenses.length,
+      };
+    }));
+
+    res.status(200).json(summary); // Envoie le résumé des dépenses
+  } catch (error) {
+    console.error('Erreur lors de la récupération des données:', error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+});
+
+router.get("/expenseschart", authenticateUser, async (req, res) => {
+  try {
+    const userID = req.userID; // ID de l'utilisateur authentifié
+
+    const expenses = await Expense.aggregate([
+      { $match: { userID: new mongoose.Types.ObjectId(userID) } }, // Filtre par utilisateur
+      {
+        $group: {
+          _id: "$categoryID",
+          totalAmount: { $sum: "$amount" },
+        },
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "_id",
+          foreignField: "_id",
+          as: "categoryDetails",
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          amount: "$totalAmount",
+          categoryID: { $arrayElemAt: ["$categoryDetails", 0] },
+        },
+      },
+    ]);
+
+    res.status(200).json(expenses);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des dépenses:", error);
+    res.status(500).json({ message: "Erreur lors de la récupération des dépenses.", error });
+  }
+});
+
 
 router.post('/addExpense', async (req, res) => {
   try {
@@ -51,7 +128,6 @@ router.post('/addExpense', async (req, res) => {
   }
 });
 
-
 // Récupérer les dépenses de l'utilisateur authentifié
 router.get("/getAllExpenses", async (req, res) => {
   try {
@@ -93,9 +169,6 @@ router.get("/getAllExpenses", async (req, res) => {
     });
   }
 });
-
- 
-
 
 
 // **Récupérer une dépense spécifique (Read)**
@@ -153,5 +226,8 @@ router.get("/getExpensesByDate", async (req, res) => {
     });
   }
 });
+
+
+
 
 module.exports = router;
