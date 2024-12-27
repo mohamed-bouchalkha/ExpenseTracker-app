@@ -88,7 +88,7 @@ const GraphReportScreen = () => {
       route === "/MainScreen" ||
       route === "/GraphReportScreen" ||
       route === "/ProfileScreen" ||
-      route === "/EditBudget"
+      route === "/HistoryPage"
     ) {
       router.push(route);
     }

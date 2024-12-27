@@ -46,6 +46,12 @@ const ProfilePage = () => {
   // User status state (active or not)
   const [isActive, setIsActive] = useState(true); // Default: active
 
+  // User name state
+  const [userName, setUserName] = useState<string | null>(null);
+
+  // Error state
+  const [error, setError] = useState<string | null>(null);
+
   // Shared value for fade animation
   const fadeAnim = useSharedValue(0); // Initial opacity is 0 (fully transparent)
 
@@ -97,10 +103,27 @@ const ProfilePage = () => {
       toast.show({ title: 'Logout Failed', variant: 'error', duration: 2000 });
     }
   };
-
+  const fetchUserProfile = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      const response = await API.get("/api/auth/profile", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      // Assume the response includes the user's firstName and lastName
+      setUserName(`${response.data.firstName} ${response.data.lastName}`);
+    } catch (err) {
+      console.error("Error fetching user profile:", err);
+      setError("Failed to load user data.");
+    }
+  };
+  
   // Use effect to trigger fade-in on mount
   useEffect(() => {
     fadeAnim.value = 1; // Fade in after component mounts
+    fetchUserProfile(); // Fetch the user profile when the component mounts
+
   }, []);
 
   return (
@@ -126,9 +149,10 @@ const ProfilePage = () => {
 
       {/* Account Name with Activity Status */}
       <HStack alignItems="center" space={2} mb={4} style={animatedStyle}>
-        <Text fontSize="2xl" fontWeight="bold" color={colorMode === 'dark' ? 'white' : 'gray.700'}>
-          John Doe
-        </Text>
+      <Text fontSize="2xl" fontWeight="bold" color={colorMode === 'dark' ? 'white' : 'gray.700'}>
+  {userName ? userName : 'Loading...'}
+</Text>
+
         <Box
           bg={isActive ? "green.500" : "red.500"}
           size={3}
