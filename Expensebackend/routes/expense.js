@@ -3,6 +3,45 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const Expense = require('../models/Expense');
 const moment = require('moment-timezone');
+const authenticateUser = require("../middlewares/authenticateUser");
+const mongoose = require('mongoose');
+
+router.get("/expenseschart", authenticateUser, async (req, res) => {
+  try {
+    const userID = req.userID; // ID de l'utilisateur authentifié
+
+    const expenses = await Expense.aggregate([
+      { $match: { userID: new mongoose.Types.ObjectId(userID) } }, // Filtre par utilisateur
+      {
+        $group: {
+          _id: "$categoryID",
+          totalAmount: { $sum: "$amount" },
+        },
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "_id",
+          foreignField: "_id",
+          as: "categoryDetails",
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          amount: "$totalAmount",
+          categoryID: { $arrayElemAt: ["$categoryDetails", 0] },
+        },
+      },
+    ]);
+
+    res.status(200).json(expenses);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des dépenses:", error);
+    res.status(500).json({ message: "Erreur lors de la récupération des dépenses.", error });
+  }
+});
+
 
 router.post('/addExpense', async (req, res) => {
   try {
@@ -51,7 +90,6 @@ router.post('/addExpense', async (req, res) => {
   }
 });
 
-
 // Récupérer les dépenses de l'utilisateur authentifié
 router.get("/getAllExpenses", async (req, res) => {
   try {
@@ -93,9 +131,6 @@ router.get("/getAllExpenses", async (req, res) => {
     });
   }
 });
-
- 
-
 
 
 // **Récupérer une dépense spécifique (Read)**
@@ -153,5 +188,8 @@ router.get("/getExpensesByDate", async (req, res) => {
     });
   }
 });
+
+
+
 
 module.exports = router;
