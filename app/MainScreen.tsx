@@ -21,7 +21,7 @@ import Footer from "./FooterNavigationComp";
 
 // Définir l'interface Expense pour typer correctement les données des dépenses
 interface Expense {
-  id: string;
+  _id: string;
   categoryID: { name: string };
   amount: number;
   date: string;
@@ -109,7 +109,7 @@ const HomeScreen = () => {
       route === "/MainScreen" ||
       route === "/GraphReportScreen" ||
       route === "/ProfileScreen" ||
-      route === "/HistoryPage"
+      route === "./HistoryPage"
     ) {
       router.push(route);
     }
@@ -120,35 +120,45 @@ const HomeScreen = () => {
     router.push(`./AddExpence?expenseId=${expenseId}`);
   };
 
-  const handleDeleteExpense = async (expenseId: string) => {
-    try {
-      
-      const token = await AsyncStorage.getItem("authToken");
-      const userID = await AsyncStorage.getItem("userID");
-
-      if (!token || !userID) {
-        throw new Error("No token or userID found");
-      }
-
-      // Call your API to delete the expense
-      await API.delete(`api/expenses/deleteExpense/${expenseId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+  const handleDeleteExpense = (expenseId: string) => {
+    Alert.alert(
+      "Confirmer la suppression",
+      "Êtes-vous sûr de vouloir supprimer cette dépense ?",
+      [
+        {
+          text: "Annuler",
+          style: "cancel",
         },
-        params: { userID },
-      });
-
-      // Update the state to remove the deleted expense
-      setExpenses(expenses.filter((expense) => expense.id !== expenseId));
-
-      // Show success message
-      alert("Expense deleted successfully.");
-    } catch (error) {
-      console.error("Error deleting expense:", error);
-      alert("Failed to delete expense.");
-    }
+        {
+          text: "Supprimer",
+          onPress: async () => {
+            try {
+              const token = await AsyncStorage.getItem("authToken");
+              const userID = await AsyncStorage.getItem("userID");
+  
+              if (!token || !userID) {
+                throw new Error("No token or userID found");
+              }
+  
+              await API.delete(`api/expenses/deleteExpense/${expenseId}`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+                params: { userID },
+              });
+  
+              setExpenses(expenses.filter((expense) => expense._id !== expenseId));
+              Alert.alert("Succès", "Dépense supprimée avec succès.");
+            } catch (error) {
+              console.error("Erreur lors de la suppression :", error);
+              Alert.alert("Erreur", "Impossible de supprimer la dépense.");
+            }
+          },
+        },
+      ]
+    );
   };
-
+  
   useFocusEffect(
     React.useCallback(() => {
       const checkAuthStatus = async () => {
@@ -239,28 +249,28 @@ const HomeScreen = () => {
           </>
         }
         data={expenses}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
+        keyExtractor={(item, index) => `${item._id}-${index}`}
         renderItem={({ item }) => (
           <Card style={styles.expenseCard}>
             <Card.Content>
               <View style={styles.expenseRow}>
-                <Text style={styles.expenseCategory}>
-                  {item.categoryID.name}
-                </Text>
+                <Text style={styles.expenseCategory}>{item.categoryID.name}</Text>
                 <Text style={styles.expenseAmount}>${item.amount}</Text>
               </View>
               <Text style={styles.expenseDate}>
                 {moment(item.date).format("DD MMM YYYY")}
               </Text>
               <View style={styles.expenseActions}>
-                <TouchableOpacity onPress={() => handleEditExpense(item.id)}>
-                  <MaterialCommunityIcons
-                    name="pencil"
-                    size={24}
-                    color={COLORS.PURPLE[600]}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDeleteExpense(item.id)}>
+                {/* Bouton pour modifier la dépense */}
+                <TouchableOpacity onPress={() => router.push(`/EditExpence`)}>
+      <MaterialCommunityIcons
+        name="pencil"
+        size={24}
+        color={COLORS.PURPLE[600]}
+      />
+    </TouchableOpacity>
+                {/* Bouton pour supprimer la dépense */}
+                <TouchableOpacity onPress={() => handleDeleteExpense(item._id)}>
                   <MaterialCommunityIcons
                     name="trash-can"
                     size={24}
@@ -271,6 +281,7 @@ const HomeScreen = () => {
             </Card.Content>
           </Card>
         )}
+        
       />
 
       <FAB

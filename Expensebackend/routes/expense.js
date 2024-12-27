@@ -3,6 +3,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const Expense = require('../models/Expense');
 const Category = require('../models/Category');
+const { ObjectId } = require('mongoose').Types;
 
 const moment = require('moment-timezone');
 const authenticateUser = require("../middlewares/authenticateUser");
@@ -193,16 +194,26 @@ router.put("/updateExpense/:id", async (req, res) => {
   }
 });
 
-// **Supprimer une dépense (Delete)**
+
+// Route pour supprimer une dépense
 router.delete("/deleteExpense/:id", async (req, res) => {
+  const expenseId = req.params.id;
+  
+  // Validation de l'ID pour s'assurer que c'est un ObjectId valide
+  if (!ObjectId.isValid(expenseId)) {
+    return res.status(400).json({ message: "ID de dépense invalide" });
+  }
+  
   try {
-    const deletedExpense = await Expense.findByIdAndDelete(req.params.id);
+    const deletedExpense = await Expense.findByIdAndDelete(expenseId);
     if (!deletedExpense) return res.status(404).json({ message: "Dépense non trouvée" });
     res.status(200).json({ message: "Dépense supprimée avec succès" });
   } catch (err) {
+    console.error('Erreur lors de la suppression de la dépense:', err);
     res.status(500).json({ message: "Erreur lors de la suppression de la dépense", error: err.message });
   }
 });
+
 
 
 
