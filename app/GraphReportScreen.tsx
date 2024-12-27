@@ -1,62 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Dimensions, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  FlatList,
+  BackHandler,
+} from "react-native";
 import { PieChart } from "react-native-chart-kit";
 import { useRouter } from "expo-router";
 import Footer from "./FooterNavigationComp";
 import { VStack } from "native-base";
-import { Icon } from "react-native-elements";
+import { Ionicons } from "@expo/vector-icons"; // Updated for Expo compatibility
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "./utils/api";
-import { categories} from './utils/MyCategory';
+import { categories } from "./utils/MyCategory";
+import { useNavigationState } from "@react-navigation/native";
 
-// const data2 = [
-//   {
-//     name: "Grocery",
-//     icon: "cart",
-//     amount: 109.18,
-//     color: "#3366FF",
-//     percent: "14.61%",
-//     expenses: 3,
-//   },
-//   {
-//     name: "Fuel",
-//     icon: "car",
-//     amount: 100.0,
-//     color: "#00CC66",
-//     percent: "13.39%",
-//     expenses: 1,
-//   },
-//   {
-//     name: "Travel",
-//     icon: "airplane",
-//     amount: 200.0,
-//     color: "#FFCC00",
-//     percent: "26.77%",
-//     expenses: 1,
-//   },
-//   {
-//     name: "Bills",
-//     icon: "document",
-//     amount: 70.0,
-//     color: "#00CCCC",
-//     percent: "9.37%",
-//     expenses: 1,
-//   },
-//   {
-//     name: "Clothes",
-//     icon: "shirt",
-//     amount: 267.89,
-//     color: "#FF3399",
-//     percent: "35.86%",
-//     expenses: 1,
-//   },
-// ];
 interface Expense {
   categoryID?: { name: string };
   amount: number;
 }
-
-
 
 const GraphReportScreen = () => {
   const [expensesSummary, setExpensesSummary] = useState([]);
@@ -66,65 +30,90 @@ const GraphReportScreen = () => {
   const [activeFooter, setActiveFooter] = useState<string>("Graph");
   const router = useRouter();
 
-   const fetchExpenses = async () => {
+  const currentRoute = useNavigationState(
+    (state) => state.routes[state.index].name
+  );
+
+  useEffect(() => {
+    if (currentRoute === "GraphReportScreen") {
+      setActiveFooter("Graph");
+    } else if (currentRoute === "HistoryPage") {
+      setActiveFooter("History");
+    } else if (currentRoute === "MainScreen") {
+      setActiveFooter("Home");
+    } else if (currentRoute === "ProfileScreen") {
+      setActiveFooter("Profile");
+    }
+
+    const onBackPress = () => {
+      return false; // Prevent default back action (optional)
+    };
+
+    BackHandler.addEventListener("hardwareBackPress", onBackPress);
+
+    return () => {
+      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    };
+  }, [currentRoute]);
+
+  const fetchExpenses = async () => {
     try {
-      const token = await AsyncStorage.getItem("authToken"); // Récupère le token stocké
-  
+      const token = await AsyncStorage.getItem("authToken");
       const response = await API.get("/api/expenses/expenseschart", {
-        headers: {
-          Authorization: `Bearer ${token}`, // En-tête d'authentification
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-  
       return response.data;
     } catch (error) {
-      console.error("Erreur lors de la récupération des dépenses:", error);
+      console.error("Error fetching expenses:", error);
       throw error;
     }
   };
+
   const handleFooterPress = (label: string, route: string) => {
     setActiveFooter(label);
     if (
       route === "/MainScreen" ||
       route === "/GraphReportScreen" ||
       route === "/ProfileScreen" ||
-      route === "/EditBudget"
+      route === "/HistoryPage"
     ) {
       router.push(route);
     }
   };
-  const colorMap: { [key: string]: string } = {
-    "blue.500": "#3182CE",
-    "green.500": "#38A169",
-    "orange.500": "#ED8936",
-    "yellow.500": "#ECC94B",
-    "red.500": "#E53E3E",
-    "teal.500": "#319795",
-    "cyan.500": "#00B5D8",
-    "pink.500": "#D53F8C",
-    "gray.500": "#A0AEC0",
-  };
+
   const getColorForCategory = (category: string) => {
     const foundCategory = categories.find((cat) => cat.label === category);
     const colorKey = foundCategory ? foundCategory.color : "gray.500";
-    return colorMap[colorKey] || "#A0AEC0"; // Par défaut, retourne le gris hexadécimal
+    const colorMap: { [key: string]: string } = {
+      "blue.500": "#3182CE",
+      "green.500": "#38A169",
+      "orange.500": "#ED8936",
+      "yellow.500": "#ECC94B",
+      "red.500": "#E53E3E",
+      "teal.500": "#319795",
+      "cyan.500": "#00B5D8",
+      "pink.500": "#D53F8C",
+      "gray.500": "#A0AEC0",
+    };
+    return colorMap[colorKey] || "#A0AEC0";
   };
+
   const loadExpenses = async () => {
     try {
       const data = await fetchExpenses();
       setExpenses(data);
     } catch (err) {
-      console.error("Erreur lors du chargement des dépenses:", err);
-      setError("Impossible de charger les données.");
+      console.error("Error loading expenses:", err);
+      setError("Unable to load data.");
     } finally {
       setLoading(false);
     }
   };
 
   const chartData = expenses.map((expense) => ({
-    name: expense.categoryID?.name || "Autre",
+    name: expense.categoryID?.name || "Other",
     value: expense.amount,
-    color: getColorForCategory(expense.categoryID?.name || "Autre"),
+    color: getColorForCategory(expense.categoryID?.name || "Other"),
     legendFontColor: "#333",
     legendFontSize: 12,
   }));
@@ -133,53 +122,45 @@ const GraphReportScreen = () => {
     (total, expense) => total + expense.amount,
     0
   );
+
   const fetchExpensesSummary = async () => {
     try {
-      const token = await AsyncStorage.getItem("authToken"); // Récupère le token JWT de l'utilisateur
+      const token = await AsyncStorage.getItem("authToken");
       if (!token) {
-        console.log('Token manquant');
+        console.log("Token missing");
         return;
       }
-  
+
       const response = await API.get("/api/expenses/expenses-summary", {
-        headers: {
-          Authorization: `Bearer ${token}`, // Envoi du token pour authentifier l'utilisateur
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-  
-      setExpensesSummary(response.data); // Met à jour le résumé des dépenses dans l'état
+
+      setExpensesSummary(response.data);
     } catch (err) {
-      console.error("Erreur lors de la récupération des données:", err);
-      setError("Impossible de charger les données.");
+      console.error("Error fetching summary:", err);
+      setError("Unable to load data.");
     } finally {
       setLoading(false);
     }
   };
-  
-
 
   const transformedData = expensesSummary.map((expense: any) => {
-    // Rechercher la catégorie correspondante
-    const matchedCategory = categories.find(
-      (cat) => cat._id === expense.categoryID
-    ) || categories.find((cat) => cat.label === 'Autre'); // Catégorie par défaut
-  
-    // Retourner un nouvel objet enrichi
+    const matchedCategory =
+      categories.find((cat) => cat._id === expense.categoryID) ||
+      categories.find((cat) => cat.label === "Autre");
+
     return {
-      name: expense.name, // Conserve le nom depuis le backend
-      categoryID: expense.categoryID, // ID de catégorie
-      amount: expense.amount, // Montant
-      expenses: expense.expenses, // Détails des dépenses
-      icon: matchedCategory?.icon || 'help', // Icône de la catégorie ou par défaut
-      color: matchedCategory?.color || 'gray.500', // Couleur de la catégorie ou par défaut
+      name: expense.name,
+      categoryID: expense.categoryID,
+      amount: expense.amount,
+      expenses: expense.expenses,
+      icon: matchedCategory?.icon || "help",
+      color: matchedCategory?.color || "gray.500",
     };
   });
-  
-  console.log(transformedData);
-  
+
   useEffect(() => {
     fetchExpensesSummary();
-
     loadExpenses();
   }, []);
 
@@ -192,7 +173,7 @@ const GraphReportScreen = () => {
       <View style={styles.bodyContainer}>
         <View style={styles.chartContainer}>
           {loading ? (
-            <Text>Chargement...</Text>
+            <Text>Loading...</Text>
           ) : error ? (
             <Text>{error}</Text>
           ) : (
@@ -213,40 +194,49 @@ const GraphReportScreen = () => {
                   strokeWidth: 2,
                 }}
               />
-              <Text style={styles.totalText}>Total: ${totalAmount.toFixed(2)}</Text>
+              <Text style={styles.totalText}>
+                Total: ${totalAmount.toFixed(2)}
+              </Text>
             </>
           )}
         </View>
-
-          {/* Categories List */}
-          <FlatList
+        <FlatList
           data={transformedData}
           keyExtractor={(item) => item.name}
           renderItem={({ item }) => (
             <View style={styles.itemContainer}>
+              {/* Icon */}
               <View
-                style={[styles.iconContainer, { backgroundColor: item.color }]}
+                style={[
+                  styles.iconContainer,
+                  { backgroundColor: getColorForCategory(item.name) },
+                ]}
               >
-                <Icon name={item.icon} size={24} color="#fff" />
+                <Ionicons name={item.icon as any} size={24} color="#fff" />
               </View>
+
+              {/* Info */}
               <View style={styles.infoContainer}>
-                <Text style={styles.itemTitle}>{item.name}</Text>
-                <Text style={styles.itemSubtitle}>{item.expenses} dépenses</Text>
+                <Text style={styles.itemTitle}>{item.name || "No Name"}</Text>
+                <Text style={styles.itemSubtitle}>
+                  {item.expenses} expenses
+                </Text>
               </View>
+
+              {/* Amount */}
               <Text style={styles.itemAmount}>
                 ${item.amount.toFixed(2)}
               </Text>
             </View>
           )}
         />
-
-
-
-
       </View>
 
       <VStack>
-        <Footer activeFooter={activeFooter} handleFooterPress={handleFooterPress} />
+        <Footer
+          activeFooter={activeFooter}
+          handleFooterPress={handleFooterPress}
+        />
       </VStack>
     </View>
   );
