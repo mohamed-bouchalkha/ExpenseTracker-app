@@ -29,6 +29,7 @@ export default function RootLayout() {
         <Stack.Screen name="EditExpence" options={{headerShown: false,}}/>
         <Stack.Screen name="VerificationCodeScreen"options={{headerShown: false,}}/>
         <Stack.Screen name="CodeverificationforForgetpass"options={{headerShown: false,}}/>
+        <Stack.Screen name="SetGoalScreen"options={{headerShown: false,}}/>
       </Stack>
       </NotificationProvider>
     </NativeBaseProvider>
