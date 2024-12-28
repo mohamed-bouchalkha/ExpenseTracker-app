@@ -20,7 +20,8 @@ import CategoryButton from '../CategoryButton'; // Correct default import
 import API from '../utils/api'; // Assurez-vous que le chemin vers api.js est correct
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const AddExpenseScreen = () => {
+const EditExpenseScreen = () => {
+
   const [selectedCategory, setSelectedCategory] = useState<ImportedCategory | null>(null);
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
@@ -126,8 +127,9 @@ const AddExpenseScreen = () => {
     }
   };
 
-  const handleCategorySelect = (category: ImportedCategory) => {
+ const handleCategorySelect = (category: ImportedCategory) => {
     setSelectedCategory(category);
+    console.log(`Selected category ID: ${category._id}`); // Affiche l'ID dans la console
   };
 
   const handleClose = () => {
@@ -238,4 +240,4 @@ const AddExpenseScreen = () => {
   );
 };
 
-export default AddExpenseScreen;
+export default EditExpenseScreen;
