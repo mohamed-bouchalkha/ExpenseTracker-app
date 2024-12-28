@@ -64,6 +64,7 @@ router.post('/login', async (req, res) => {
 
     if (!user.isVerified) {
       console.log(`Login failed: User with email ${email} is not verified.`);
+console.log
       return res.status(403).json({
         message:
           'Your account is not verified. Please check your email and verify your account before logging in.',
@@ -73,8 +74,10 @@ router.post('/login', async (req, res) => {
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
-      console.log(`Login failed: Invalid credentials for user with email ${email}.`);
-      return res.status(400).json({ message: 'Invalid credentials' });
+      // console.log(`Login failed: Invalid credentials for user with email ${email}.`);
+      // return res.status(400).json({ message: 'Invalid credentials' });
+            Alert.alert('Error', error.response.data.message);  
+      
     }
 
     // Créer un token JWT

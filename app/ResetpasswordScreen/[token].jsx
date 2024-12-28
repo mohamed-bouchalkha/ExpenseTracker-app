@@ -8,35 +8,43 @@ import {
   Alert,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { colors } from "./utils/colors";
-import { fonts } from "./utils/fonts";
-import { useRouter } from "expo-router"; // Importation de useRouter
-import API from './utils/api'; // Assurez-vous que cette instance Axios pointe vers votre backend.
+import { colors } from "../utils/colors";
+import { fonts } from "../utils/fonts";
+// import { useRouter } from "expo-router"; // Importation de useRouter
+import API from '../utils/api'; // Assurez-vous que cette instance Axios pointe vers votre backend.
+import { useRouter, useSearchParams,usePathname  } from "expo-router"; // Importez useSearchParams
 
-const EmailInputScreen = () => {
-  const [email, setEmail] = useState("");
+const ResetPasswordScreen = () => {
+  const pathname = usePathname();
+  const token = pathname.split("/").pop(); // Extract the last segment (token)
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const router = useRouter();
+  const handleSubmit = async () => { 
+    if (!newPassword || !confirmPassword) {
+      Alert.alert("Error", "Please fill in both fields.");
+      return;
+    }
 
-  const handleSubmit = async () => {
-    if (!email) {
-      Alert.alert('Error', 'Please enter a valid email address.');
-
+    if (newPassword !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match.");
       return;
     }
 
     try {
-      const response = await API.post('/api/password/forgot-password', { email });
+      const response = await API.post('/api/password/reset-password', { 
+        token, // Passez le token avec la requête.
+        password: newPassword,
+      });
       if (response.status === 200) {
-        Alert.alert('Success', 'An email has been sent to reset your password.');
-        router.push('/CodeverificationforForgetpass'); // Redirige vers l'écran suivant.
-
+        Alert.alert("Success", "Your password has been successfully reset.");
+        router.push("/LoginScreen"); // Redirige vers la page de connexion après succès.
       }
     } catch (error) {
-      console.error('Error:', error.response?.data || error.message);
-      Alert.alert('Error', 'Failed to send reset password email.');
+      console.error("Error:", error.response?.data || error.message);
+      Alert.alert("Error", "Failed to reset the password.");
     }
   };
-
 
   return (
     <View style={styles.container}>
@@ -48,18 +56,29 @@ const EmailInputScreen = () => {
       </TouchableOpacity>
 
       <View style={styles.textContainer}>
-        <Text style={styles.headingText}>Enter Your Email</Text>
+        <Text style={styles.headingText}>Reset Your Password</Text>
       </View>
 
       <View style={styles.formContainer}>
         <View style={styles.inputContainer}>
-          <Ionicons name={"mail-outline"} size={30} color={"#999"} />
+          <Ionicons name={"lock-closed-outline"} size={30} color={"#999"} />
           <TextInput
             style={styles.textInput}
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
+            placeholder="Enter new password"
+            value={newPassword}
+            onChangeText={setNewPassword}
+            secureTextEntry
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Ionicons name={"lock-closed-outline"} size={30} color={"#999"} />
+          <TextInput
+            style={styles.textInput}
+            placeholder="Confirm new password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
           />
         </View>
 
@@ -71,7 +90,6 @@ const EmailInputScreen = () => {
   );
 };
 
-export default EmailInputScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -127,3 +145,4 @@ const styles = StyleSheet.create({
     padding: 10,
   },
 });
+export default ResetPasswordScreen;

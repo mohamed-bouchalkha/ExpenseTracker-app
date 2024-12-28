@@ -10,68 +10,65 @@ import {
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { colors } from "./utils/colors";
 import { fonts } from "./utils/fonts";
-import { useRouter } from "expo-router"; // Importation de useRouter
-import API from './utils/api'; // Assurez-vous que cette instance Axios pointe vers votre backend.
+import { useRouter } from "expo-router";
+import API from './utils/api';
 
-const EmailInputScreen = () => {
-  const [email, setEmail] = useState("");
+const CodeVerificationScreen = () => {
+  const [code, setCode] = useState("");
   const router = useRouter();
 
   const handleSubmit = async () => {
-    if (!email) {
-      Alert.alert('Error', 'Please enter a valid email address.');
-
-      return;
-    }
-
     try {
-      const response = await API.post('/api/password/forgot-password', { email });
+      const response = await API.post('/api/password/verify-reset-code', { code });
+  
       if (response.status === 200) {
-        Alert.alert('Success', 'An email has been sent to reset your password.');
-        router.push('/CodeverificationforForgetpass'); // Redirige vers l'écran suivant.
+        const { token } = response.data; // Récupérer le token depuis la réponse
+        router.push(`./ResetpasswordScreen/${token}`);
+
+                // router.push(`./AddExpence?expenseId=${expenseId}`);
 
       }
     } catch (error) {
-      console.error('Error:', error.response?.data || error.message);
-      Alert.alert('Error', 'Failed to send reset password email.');
+      Alert.alert('Error', 'Failed to verify the code.');
     }
   };
-
+  
 
   return (
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.backButtonWrapper}
-        onPress={() => router.back()} // Utilisation correcte de router.back()
+        onPress={() => router.back()}
       >
         <Ionicons name={"arrow-back-outline"} color={"#000"} size={25} />
       </TouchableOpacity>
 
       <View style={styles.textContainer}>
-        <Text style={styles.headingText}>Enter Your Email</Text>
+        <Text style={styles.headingText}>Enter Verification Code</Text>
+        <Text style={styles.subText}>We have sent a 6-digit code to your email.</Text>
       </View>
 
       <View style={styles.formContainer}>
         <View style={styles.inputContainer}>
-          <Ionicons name={"mail-outline"} size={30} color={"#999"} />
+          <Ionicons name={"key-outline"} size={30} color={"#999"} />
           <TextInput
             style={styles.textInput}
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
+            placeholder="Enter 6-digit code"
+            value={code}
+            onChangeText={setCode}
+            keyboardType="numeric"
+            maxLength={6}
           />
         </View>
 
         <TouchableOpacity onPress={handleSubmit} style={styles.submitButtonWrapper}>
-          <Text style={styles.submitText}>Submit</Text>
+          <Text style={styles.submitText}>Verify</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 };
 
-export default EmailInputScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -95,6 +92,13 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontFamily: fonts.SemiBold,
     textAlign: "center",
+  },
+  subText: {
+    fontSize: 14,
+    color: colors.gray,
+    fontFamily: fonts.Regular,
+    textAlign: "center",
+    marginTop: 10,
   },
   formContainer: {
     marginTop: 20,
@@ -127,3 +131,4 @@ const styles = StyleSheet.create({
     padding: 10,
   },
 });
+export default CodeVerificationScreen;

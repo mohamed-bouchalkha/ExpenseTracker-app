@@ -9,6 +9,9 @@ const userSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
   verificationCode: { type: String, default: null }, // Code de vérification
   codeExpiresAt: { type: Date, default: null }, // Date d'expiration du code
+  codereset: { type: String, default: null }, // Code de réinitialisation
+  isVerifiedCodeReset: { type: Boolean, default: false }, // Vérification du code de réinitialisation
+  codeResetExpiresAt: { type: Date, default: null }, // Expiration du code de réinitialisation
 });
 
 // Hash du mot de passe avant la sauvegarde

@@ -33,8 +33,8 @@ const LoginScreen = () => {
         router.push("/MainScreen");  // Redirige vers la page MainScreen
       }
     } catch (error) {
-      console.error("Login Error: ", error.response?.data || error.message);
-      Alert.alert("Error", "Login Failed. Please check your credentials.");
+      Alert.alert('Error', error.response.data.message);
+
     }
   };
   const handleGoBack = () => {
