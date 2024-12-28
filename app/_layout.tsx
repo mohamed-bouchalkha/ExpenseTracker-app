@@ -25,6 +25,8 @@ export default function RootLayout() {
         <Stack.Screen name="Changepassword" />
         <Stack.Screen name="ProfileScreen"options={{headerShown: false,}}/>
         <Stack.Screen name="EditExpence" />
+        <Stack.Screen name="VerificationCodeScreen"options={{headerShown: false,}}/>
+
 
       </Stack>
     </NativeBaseProvider>

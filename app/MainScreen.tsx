@@ -262,13 +262,17 @@ const HomeScreen = () => {
               </Text>
               <View style={styles.expenseActions}>
                 {/* Bouton pour modifier la dépense */}
-                <TouchableOpacity onPress={() => router.push(`/EditExpence`)}>
-      <MaterialCommunityIcons
-        name="pencil"
-        size={24}
-        color={COLORS.PURPLE[600]}
-      />
-    </TouchableOpacity>
+                <TouchableOpacity
+  onPress={() => router.push({ pathname: '/EditExpence/[id]', params: { id: item._id } })}
+>
+                  
+  <MaterialCommunityIcons
+    name="pencil"
+    size={24}
+    color={COLORS.PURPLE[600]}
+  />
+</TouchableOpacity>
+
                 {/* Bouton pour supprimer la dépense */}
                 <TouchableOpacity onPress={() => handleDeleteExpense(item._id)}>
                   <MaterialCommunityIcons

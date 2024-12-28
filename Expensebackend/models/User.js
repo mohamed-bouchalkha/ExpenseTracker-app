@@ -6,7 +6,9 @@ const userSchema = new mongoose.Schema({
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  isVerified: { type: Boolean, default: false }, // Nouveau champ
+  isVerified: { type: Boolean, default: false },
+  verificationCode: { type: String, default: null }, // Code de vérification
+  codeExpiresAt: { type: Date, default: null }, // Date d'expiration du code
 });
 
 // Hash du mot de passe avant la sauvegarde

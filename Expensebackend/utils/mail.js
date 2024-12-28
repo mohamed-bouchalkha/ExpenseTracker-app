@@ -9,17 +9,16 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const sendVerificationEmail = (email, token) => {
-  const verificationLink = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
-
+const sendVerificationEmail = (email, code) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: 'Please verify your email address',
+    subject: 'Your verification code',
     html: `
       <h2>Welcome!</h2>
-      <p>Click the link below to verify your email address:</p>
-      <a href="${verificationLink}">Verify Email</a>
+      <p>Your verification code is:</p>
+      <h1>${code}</h1>
+      <p>This code will expire in 10 minutes.</p>
     `,
   };
 
@@ -27,3 +26,4 @@ const sendVerificationEmail = (email, token) => {
 };
 
 module.exports = { sendVerificationEmail };
+

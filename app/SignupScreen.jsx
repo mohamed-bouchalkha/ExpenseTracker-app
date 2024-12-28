@@ -25,7 +25,7 @@ const SignupScreen = () => {
 
   const handleSignup = async () => {
     try {
-      const response = await API.post("/api/auth/register", {
+      const response = await API.post("/api/authv/register", {
         firstName: firstname,
         lastName: lastname,    
         email,
@@ -34,8 +34,8 @@ const SignupScreen = () => {
       
 
       if (response.status === 201) {
-        Alert.alert("Success", "Account Created Successfully!");
-        navigation.navigate("LoginScreen");
+        Alert.alert("A verification code has already been sent to this email address!");
+        navigation.navigate("VerificationCodeScreen");
       }
     } catch (error) {
       console.error("Signup Error: ", error.response?.data || error.message);

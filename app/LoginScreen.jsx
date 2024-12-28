@@ -16,7 +16,7 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     try {
-      const response = await API.post("/api/auth/login", { email, password });
+      const response = await API.post("/api/authv/login", { email, password });
   
       if (response.status === 200) {
         const { token, userID } = response.data;
