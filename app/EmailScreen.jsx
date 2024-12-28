@@ -20,6 +20,7 @@ const EmailInputScreen = () => {
   const handleSubmit = async () => {
     if (!email) {
       Alert.alert('Error', 'Please enter a valid email address.');
+
       return;
     }
 
@@ -27,6 +28,8 @@ const EmailInputScreen = () => {
       const response = await API.post('/api/password/forgot-password', { email });
       if (response.status === 200) {
         Alert.alert('Success', 'An email has been sent to reset your password.');
+        router.push('/CodeverificationforForgetpass'); // Redirige vers l'écran suivant.
+
       }
     } catch (error) {
       console.error('Error:', error.response?.data || error.message);

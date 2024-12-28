@@ -33,8 +33,8 @@ const LoginScreen = () => {
         router.push("/MainScreen");  // Redirige vers la page MainScreen
       }
     } catch (error) {
-      console.error("Login Error: ", error.response?.data || error.message);
-      Alert.alert("Error", "Login Failed. Please check your credentials.");
+      Alert.alert('Error', error.response.data.message);
+
     }
   };
   const handleGoBack = () => {
@@ -97,14 +97,14 @@ const LoginScreen = () => {
         <TouchableOpacity onPress={handleLogin} style={styles.loginButtonWrapper}>
           <Text style={styles.loginText}>Login</Text>
         </TouchableOpacity>
-        <Text style={styles.continueText}>or continue with</Text>
+        {/* <Text style={styles.continueText}>or continue with</Text>
         <TouchableOpacity style={styles.googleButtonContainer}>
           <Image
             source={require("./assets/google.png")}
             style={styles.googleImage}
           />
           <Text style={styles.googleText}>Google</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <View style={styles.footerContainer}>
           <Text style={styles.accountText}>Don’t have an account?</Text>
           <TouchableOpacity onPress={handleSignup}>
