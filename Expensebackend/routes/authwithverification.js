@@ -74,9 +74,9 @@ console.log
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
-      // console.log(`Login failed: Invalid credentials for user with email ${email}.`);
-      // return res.status(400).json({ message: 'Invalid credentials' });
-            Alert.alert('Error', error.response.data.message);  
+      console.log(`Login failed: Invalid credentials for user with email ${email}.`);
+      return res.status(400).json({ message: 'Invalid credentials' });
+            // Alert.alert('Error', error.response.data.message);  
       
     }
 
