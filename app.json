@@ -37,5 +37,16 @@
     "experiments": {
       "typedRoutes": true
     }
+  },
+  "android": {
+  "permissions": [
+    "NOTIFICATIONS"
+  ]
+},
+"ios": {
+  "infoPlist": {
+    "UIBackgroundModes": ["remote-notification"]
   }
+}
+
 }

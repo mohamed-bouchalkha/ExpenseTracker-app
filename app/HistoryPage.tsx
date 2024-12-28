@@ -1,35 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { ExternalPathString, RelativePathString, UnknownInputParams, useRouter } from "expo-router";
-import {
-  View,
-  Text,
-  StyleSheet,
-  SectionList,
-  TouchableOpacity,
-  BackHandler,
-} from "react-native";
+import { useRouter } from "expo-router";
+import { View, Text, StyleSheet, SectionList, TouchableOpacity, BackHandler } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import Footer from "./FooterNavigationComp";
 import { useNavigationState } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "./utils/api";
 import { categories, Category } from "./utils/MyCategory";
-import Svg from "./assets/SVG/NoData"; // Importing the SvgUri component
+import Svg from "./assets/SVG/NoData"; // Ensure this is the correct SVG import
 
-// Color mapping function
 const mapColorToHex = (color: string) => {
   const colorMapping: Record<string, string> = {
-    "blue.500": "#3b82f6", // Example hex for blue.500
-    "green.500": "#10b981", // Example hex for green.500
-    "orange.500": "#f97316", // Example hex for orange.500
-    "yellow.500": "#fbbf24", // Example hex for yellow.500
-    "red.500": "#ef4444", // Example hex for red.500
-    "teal.500": "#14b8a6", // Example hex for teal.500
-    "cyan.500": "#22d3ee", // Example hex for cyan.500
-    "pink.500": "#ec4899", // Example hex for pink.500
-    "gray.500": "#6b7280", // Example hex for gray.500
+    "blue.500": "#3b82f6",
+    "green.500": "#10b981",
+    "orange.500": "#f97316",
+    "yellow.500": "#fbbf24",
+    "red.500": "#ef4444",
+    "teal.500": "#14b8a6",
+    "cyan.500": "#22d3ee",
+    "pink.500": "#ec4899",
+    "gray.500": "#6b7280",
   };
-  return colorMapping[color] || color; // Default to color if not found
+  return colorMapping[color] || color;
 };
 
 const HistoryPage = () => {
@@ -39,10 +31,7 @@ const HistoryPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeFooter, setActiveFooter] = useState("History");
   const router = useRouter();
-
-  const currentRoute = useNavigationState(
-    (state) => state.routes[state.index].name
-  );
+  const currentRoute = useNavigationState((state) => state.routes[state.index].name);
 
   useEffect(() => {
     if (currentRoute === "HistoryPage") {
@@ -114,10 +103,10 @@ const HistoryPage = () => {
     return {
       category: category?.label || "Other",
       icon: category?.icon || "help",
-      color: mapColorToHex(category?.color || "gray.500"), // Use color mapping
+      color: mapColorToHex(category?.color || "gray.500"),
       data: expense.detailedExpenses || [],
       id: expense.categoryID,
-      expenseCount: expense.detailedExpenses?.length || 0, // Count the expenses
+      expenseCount: expense.detailedExpenses?.length || 0,
     };
   });
 
@@ -128,7 +117,7 @@ const HistoryPage = () => {
       </View>
       {loading ? (
         <View style={styles.loadingContainer}>
-         <Svg width={300} height={300} />,  {/* Show SVG during loading */}
+          <Svg width={300} height={300} />
         </View>
       ) : error ? (
         <Text>{error}</Text>
@@ -138,10 +127,10 @@ const HistoryPage = () => {
           keyExtractor={(item, index) => `${item.id}-${index}`}
           renderSectionHeader={({ section: { category, color, icon, id, expenseCount } }) => (
             <TouchableOpacity onPress={() => toggleCategoryVisibility(id)}>
-              <View style={[styles.sectionHeader, { backgroundColor: color }]}>
-                <Icon name={icon} size={20} color="#fff" />
-                <Text style={styles.sectionHeaderText}>{category}</Text>
-                <Text style={styles.expenseCount}>{expenseCount}</Text> {/* Display the expense count */}
+              <View style={[styles.sectionHeader, { backgroundColor: color || "#ccc" }]}>
+                <Icon name={icon || "help"} size={20} color="#fff" />
+                <Text style={styles.sectionHeaderText}>{category || "Unknown Category"}</Text>
+                <Text style={styles.expenseCount}>{expenseCount}</Text>
               </View>
             </TouchableOpacity>
           )}
@@ -155,16 +144,12 @@ const HistoryPage = () => {
               <View style={styles.timelineItem}>
                 <View style={styles.iconContainer}>
                   <Icon name="cart" size={20} color={section.color} />
-                  {index < section.data.length - 1 && (
-                    <View style={styles.verticalLine} />
-                  )}
+                  {index < section.data.length - 1 && <View style={styles.verticalLine} />}
                 </View>
 
                 <View style={styles.detailsContainer}>
                   <Text style={styles.expenseTitle}>{item.name}</Text>
-                  <Text style={styles.expenseDate}>
-                    {new Date(item.date).toLocaleDateString()}
-                  </Text>
+                  <Text style={styles.expenseDate}>{new Date(item.date).toLocaleDateString()}</Text>
                 </View>
 
                 <Text style={styles.expenseAmount}>${item.amount.toFixed(2)}</Text>
@@ -175,32 +160,16 @@ const HistoryPage = () => {
         />
       )}
       <View style={styles.footerContainer}>
-        <Footer
-          activeFooter={activeFooter}
-          handleFooterPress={handleFooterPress}
-        />
+        <Footer activeFooter={activeFooter} handleFooterPress={handleFooterPress} />
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-    justifyContent: "space-between",
-  },
-  header: {
-    backgroundColor: "#6c5ce7",
-    paddingVertical: 20,
-    paddingHorizontal: 15,
-  },
-  headerText: {
-    fontSize: 18,
-    color: "#fff",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
+  container: { flex: 1, backgroundColor: "#F5F5F5", justifyContent: "space-between" },
+  header: { backgroundColor: "#6c5ce7", paddingVertical: 20, paddingHorizontal: 15 },
+  headerText: { fontSize: 18, color: "#fff", fontWeight: "bold", textAlign: "center" },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -210,70 +179,18 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginHorizontal: 10,
   },
-  sectionHeaderText: {
-    fontSize: 16,
-    color: "#fff",
-    fontWeight: "bold",
-    marginLeft: 10,
-    flex: 1, // This will allow the expense count to align to the right
-  },
-  expenseCount: {
-    fontSize: 16,
-    color: "#fff",
-    fontWeight: "bold",
-    textAlign: "right", // Aligns the count to the right
-  },
-  timelineItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    marginHorizontal: 10,
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    marginBottom: 8,
-    elevation: 1,
-  },
-  iconContainer: {
-    alignItems: "center",
-    marginRight: 15,
-  },
-  verticalLine: {
-    height: 30,
-    width: 2,
-    backgroundColor: "#ddd",
-    marginVertical: 5,
-  },
-  detailsContainer: {
-    flex: 1,
-  },
-  expenseTitle: {
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "bold",
-  },
-  expenseDate: {
-    fontSize: 12,
-    color: "#666",
-  },
-  expenseAmount: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  separator: {
-    height: 1,
-    backgroundColor: "#ddd",
-    marginHorizontal: 20,
-  },
-  footerContainer: {
-    marginTop: "auto",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  sectionHeaderText: { fontSize: 16, color: "#fff", fontWeight: "bold", marginLeft: 10, flex: 1 },
+  expenseCount: { fontSize: 16, color: "#fff", fontWeight: "bold", textAlign: "right" },
+  timelineItem: { flexDirection: "row", alignItems: "center", paddingVertical: 10, paddingHorizontal: 15, marginHorizontal: 10, backgroundColor: "#fff", borderRadius: 8, marginBottom: 8, elevation: 1 },
+  iconContainer: { alignItems: "center", marginRight: 15 },
+  verticalLine: { height: 30, width: 2, backgroundColor: "#ddd", marginVertical: 5 },
+  detailsContainer: { flex: 1 },
+  expenseTitle: { fontSize: 16, color: "#333", fontWeight: "bold" },
+  expenseDate: { fontSize: 12, color: "#666" },
+  expenseAmount: { fontSize: 16, fontWeight: "bold", color: "#333" },
+  separator: { height: 1, backgroundColor: "#ddd", marginHorizontal: 20 },
+  footerContainer: { marginTop: "auto" },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
 });
 
 export default HistoryPage;

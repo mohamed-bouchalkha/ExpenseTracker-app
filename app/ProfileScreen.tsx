@@ -90,6 +90,9 @@ const ProfilePage = () => {
   const handleChangePassword = () => {
     router.push('/Changepassword'); // Navigate to the Change Password page
   };
+  const handleSetGoal = () => {
+    router.push('/SetGoalScreen'); // Navigate to the Change Password page
+  };
 
   const handleLogout = async () => {
     try {
@@ -199,7 +202,18 @@ const ProfilePage = () => {
       >
         Notifications
       </Button>
-
+      {/* Goal Button*/}
+      <Button
+        mt={2}
+        variant="outline"
+        colorScheme="purple"
+        leftIcon={<Icon as={<Ionicons name="trophy" />} size="md" color="purple.600" />}
+        width="80%"
+        onPress={handleSetGoal}
+        style={animatedStyle}
+      >
+        Goal Settings !
+      </Button>
       {/* Change Password Button */}
       <Button
         mt={4}
