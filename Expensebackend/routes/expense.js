@@ -237,8 +237,63 @@ router.get("/getExpensesByDate", async (req, res) => {
     });
   }
 });
+router.get('/expenses-summary2', async (req, res) => {
+  try {
+    // Extract token from headers
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'Unauthorized: No token provided' });
+    }
 
+    // Verify token and extract user ID
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.id;
 
+    // Fetch all categories
+    const categories = await Category.find();
 
+    // Generate summary for each category with detailed expenses
+    const summary = await Promise.all(
+      categories.map(async (category) => {
+        // Fetch expenses for this category and user, and populate category and user data
+        const expenses = await Expense.find({ categoryID: category._id, userID: userId })
+          .populate('categoryID')  // Populating category data for each expense
+          .populate('userID');     // Populating user data if needed
 
+        // Debugging: log fetched expenses to check if populate is working
+        console.log(`Fetched expenses for category: ${category.name}`, expenses);
+
+        // Calculate the total amount for the category
+        const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+
+        // Map the expenses into detailed format
+        const detailedExpenses = expenses.map(expense => ({
+          id: expense._id.toString(),
+          name: expense.description || 'No description', // Use the 'description' field for the name
+          amount: expense.amount,
+          date: expense.date,
+          category: expense.categoryID ? expense.categoryID.name : 'No category',  // Populated category name
+          user: expense.userID ? expense.userID.username : 'No user' // Populated user username
+        }));
+
+        // Debugging: log detailed expenses
+        console.log('Detailed Expenses:', JSON.stringify(detailedExpenses, null, 2));
+
+        return {
+          name: category.name,
+          categoryID: category._id.toString(),
+          amount: totalAmount,
+          expenses: expenses.length,
+          detailedExpenses,
+        };
+      })
+    );
+
+    // Send the summary with detailed expenses as a response
+    res.status(200).json(summary);
+  } catch (error) {
+    console.error("Error fetching expense summary:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+});
 module.exports = router;

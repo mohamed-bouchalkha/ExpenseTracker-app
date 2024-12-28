@@ -1,159 +1,185 @@
 import React, { useEffect, useState } from "react";
-import { useRouter } from "expo-router";
-import { View, Text, StyleSheet, SectionList, TouchableOpacity, BackHandler } from "react-native";
+import { ExternalPathString, RelativePathString, UnknownInputParams, useRouter } from "expo-router";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SectionList,
+  TouchableOpacity,
+  BackHandler,
+} from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import Footer from "./FooterNavigationComp";
-import { VStack } from "native-base";
 import { useNavigationState } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import API from "./utils/api";
+import { categories, Category } from "./utils/MyCategory";
+import Svg from "./assets/SVG/NoData"; // Importing the SvgUri component
 
-// Sample expense data sorted by category
-const data = [
-  {
-    category: "Grocery",
-    icon: "cart",
-    color: "#3366FF",
-    expenses: [
-      { id: "1", name: "Supermarket", amount: 50.25, date: "2024-12-01" },
-      { id: "2", name: "Veggies Market", amount: 58.93, date: "2024-12-03" },
-      { id: "3", name: "Meat Market", amount: 45.12, date: "2024-12-04" },
-      { id: "4", name: "Fruit Market", amount: 30.75, date: "2024-12-07" },      
-    ],
-  },
-  {
-    category: "Fuel",
-    icon: "car",
-    color: "#00CC66",
-    expenses: [{ id: "3", name: "Gas Station", amount: 100.0, date: "2024-12-02" },
-      { id: "2", name: "Gas Station", amount: 120.0, date: "2024-12-03" },
-      { id: "1", name: "Gas Station", amount: 80.0, date: "2024-12-04" },
-      { id: "4", name: "Gas Station", amount: 150.0, date: "2024-12-07" },
-    ],
-  },
-  {
-    category: "Travel",
-    icon: "airplane",
-    color: "#FFCC00",
-    expenses: [{ id: "4", name: "Flight Tickets", amount: 200.0, date: "2024-12-05" }],
-  },
-  {
-    category: "Bills",
-    icon: "document",
-    color: "#00CCCC",
-    expenses: [{ id: "5", name: "Electricity Bill", amount: 70.0, date: "2024-12-06" }],
-  },
-  {
-    category: "Clothes",
-    icon: "shirt",
-    color: "#FF3399",
-    expenses: [{ id: "6", name: "Clothing Store", amount: 267.89, date: "2024-12-04" }],
-  },
-];
+// Color mapping function
+const mapColorToHex = (color: string) => {
+  const colorMapping: Record<string, string> = {
+    "blue.500": "#3b82f6", // Example hex for blue.500
+    "green.500": "#10b981", // Example hex for green.500
+    "orange.500": "#f97316", // Example hex for orange.500
+    "yellow.500": "#fbbf24", // Example hex for yellow.500
+    "red.500": "#ef4444", // Example hex for red.500
+    "teal.500": "#14b8a6", // Example hex for teal.500
+    "cyan.500": "#22d3ee", // Example hex for cyan.500
+    "pink.500": "#ec4899", // Example hex for pink.500
+    "gray.500": "#6b7280", // Example hex for gray.500
+  };
+  return colorMapping[color] || color; // Default to color if not found
+};
 
 const HistoryPage = () => {
   const [expandedCategories, setExpandedCategories] = useState<{ [key: string]: boolean }>({});
-  const [activeFooter, setActiveFooter] = useState<string>("History");
+  const [expenses, setExpenses] = useState<{ name: string; detailedExpenses: any[]; categoryID: string | number }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeFooter, setActiveFooter] = useState("History");
   const router = useRouter();
- // Use useNavigationState to track the current route
- const currentRoute = useNavigationState((state) => state.routes[state.index].name);
 
- useEffect(() => {
-   // Update activeFooter based on currentRoute
-   if (currentRoute === "HistoryPage") {
-     setActiveFooter("History");
-   } else if (currentRoute === "GraphReportScreen") {
-     setActiveFooter("Graph");
-   } else if (currentRoute === "MainScreen") {
-     setActiveFooter("Home");
-   } else if (currentRoute === "ProfileScreen") {
-     setActiveFooter("Profile");
-   }
+  const currentRoute = useNavigationState(
+    (state) => state.routes[state.index].name
+  );
 
-   const onBackPress = () => {
-     // Handle back button press if necessary
-     // Optionally, add logic to handle confirmation for exit
-     return false; // Prevent default back action (optional)
-   };
+  useEffect(() => {
+    if (currentRoute === "HistoryPage") {
+      setActiveFooter("History");
+    } else if (currentRoute === "GraphReportScreen") {
+      setActiveFooter("Graph");
+    } else if (currentRoute === "MainScreen") {
+      setActiveFooter("Home");
+    } else if (currentRoute === "ProfileScreen") {
+      setActiveFooter("Profile");
+    }
 
-   BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    const onBackPress = () => {
+      return false; // Prevent default back action
+    };
 
-   return () => {
-     BackHandler.removeEventListener("hardwareBackPress", onBackPress);
-   };
- }, [currentRoute]); // Re-run whenever the route changes
+    BackHandler.addEventListener("hardwareBackPress", onBackPress);
 
-  // Toggle category visibility
-  const toggleCategoryVisibility = (category: string) => {
+    return () => {
+      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    };
+  }, [currentRoute]);
+
+  const fetchExpenses = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        setError("Token missing");
+        return;
+      }
+
+      const response = await API.get("/api/expenses/expenses-summary2", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data;
+    } catch (err) {
+      console.error("Error fetching expenses:", err);
+      setError("Unable to load data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const loadExpenses = async () => {
+      const data = await fetchExpenses();
+      if (data) {
+        setExpenses(data);
+      }
+    };
+
+    loadExpenses();
+  }, []);
+
+  const toggleCategoryVisibility = (categoryId: string | number) => {
     setExpandedCategories((prevState) => ({
       ...prevState,
-      [category]: !prevState[category],
+      [categoryId]: !prevState[categoryId],
     }));
   };
 
-  const handleFooterPress = (label: string, route: string) => {
+  const handleFooterPress = (label: React.SetStateAction<string>, route: any) => {
     setActiveFooter(label);
-    if (
-      route === "/MainScreen" ||
-      route === "/GraphReportScreen" ||
-      route === "/ProfileScreen" ||
-      route === "/HistoryPage"
-    ) {
-      router.push(route);
-    }
+    router.push(route);
   };
+
+  const transformedData = expenses.map((expense) => {
+    const category = categories.find((cat) => cat._id === expense.categoryID);
+    return {
+      category: category?.label || "Other",
+      icon: category?.icon || "help",
+      color: mapColorToHex(category?.color || "gray.500"), // Use color mapping
+      data: expense.detailedExpenses || [],
+      id: expense.categoryID,
+      expenseCount: expense.detailedExpenses?.length || 0, // Count the expenses
+    };
+  });
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Expense History</Text>
       </View>
-      <SectionList
-        sections={data.map((category) => ({
-          title: category.category,
-          color: category.color,
-          icon: category.icon,
-          data: category.expenses,
-        }))}
-        keyExtractor={(item) => item.id}
-        renderSectionHeader={({ section: { title, color, icon } }) => (
-          <TouchableOpacity onPress={() => toggleCategoryVisibility(title)}>
-            <View style={[styles.sectionHeader, { backgroundColor: color }]}>
-              <Icon name={icon} size={20} color="#fff" />
-              <Text style={styles.sectionHeaderText}>{title}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-        renderItem={({ item, index, section }) => {
-          const isExpanded = expandedCategories[section.title];
-          if (!isExpanded) {
-            return null;
-          }
-
-          return (
-            <View style={styles.timelineItem}>
-              {/* Timeline Dot */}
-              <View style={styles.iconContainer}>
-                <Icon name="cart" size={20} color={section.color} />
-                {index < section.data.length - 1 && <View style={styles.verticalLine} />}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+         <Svg width={300} height={300} />,  {/* Show SVG during loading */}
+        </View>
+      ) : error ? (
+        <Text>{error}</Text>
+      ) : (
+        <SectionList
+          sections={transformedData}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
+          renderSectionHeader={({ section: { category, color, icon, id, expenseCount } }) => (
+            <TouchableOpacity onPress={() => toggleCategoryVisibility(id)}>
+              <View style={[styles.sectionHeader, { backgroundColor: color }]}>
+                <Icon name={icon} size={20} color="#fff" />
+                <Text style={styles.sectionHeaderText}>{category}</Text>
+                <Text style={styles.expenseCount}>{expenseCount}</Text> {/* Display the expense count */}
               </View>
+            </TouchableOpacity>
+          )}
+          renderItem={({ item, index, section }) => {
+            const isExpanded = expandedCategories[section.id];
+            if (!isExpanded) {
+              return null;
+            }
 
-              {/* Expense Details */}
-              <View style={styles.detailsContainer}>
-                <Text style={styles.expenseTitle}>{item.name}</Text>
-                <Text style={styles.expenseDate}>{item.date}</Text>
+            return (
+              <View style={styles.timelineItem}>
+                <View style={styles.iconContainer}>
+                  <Icon name="cart" size={20} color={section.color} />
+                  {index < section.data.length - 1 && (
+                    <View style={styles.verticalLine} />
+                  )}
+                </View>
+
+                <View style={styles.detailsContainer}>
+                  <Text style={styles.expenseTitle}>{item.name}</Text>
+                  <Text style={styles.expenseDate}>
+                    {new Date(item.date).toLocaleDateString()}
+                  </Text>
+                </View>
+
+                <Text style={styles.expenseAmount}>${item.amount.toFixed(2)}</Text>
               </View>
-
-              {/* Expense Amount */}
-              <Text style={styles.expenseAmount}>${item.amount.toFixed(2)}</Text>
-            </View>
-          );
-        }}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        contentContainerStyle={styles.listContainer}
-      />
-      <VStack>
-        {/* Footer */}
-        <Footer activeFooter={activeFooter} handleFooterPress={handleFooterPress} />
-      </VStack>
+            );
+          }}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+        />
+      )}
+      <View style={styles.footerContainer}>
+        <Footer
+          activeFooter={activeFooter}
+          handleFooterPress={handleFooterPress}
+        />
+      </View>
     </View>
   );
 };
@@ -162,6 +188,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",
+    justifyContent: "space-between",
   },
   header: {
     backgroundColor: "#6c5ce7",
@@ -188,6 +215,13 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     marginLeft: 10,
+    flex: 1, // This will allow the expense count to align to the right
+  },
+  expenseCount: {
+    fontSize: 16,
+    color: "#fff",
+    fontWeight: "bold",
+    textAlign: "right", // Aligns the count to the right
   },
   timelineItem: {
     flexDirection: "row",
@@ -232,8 +266,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#ddd",
     marginHorizontal: 20,
   },
-  listContainer: {
-    paddingBottom: 20,
+  footerContainer: {
+    marginTop: "auto",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
