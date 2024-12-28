@@ -93,7 +93,9 @@ const ProfilePage = () => {
   const handleSetGoal = () => {
     router.push('/SetGoalScreen'); // Navigate to the Change Password page
   };
-
+  const handleAbout = () => {
+    router.push('/AboutScreen'); // Navigate to the Change Password page
+  };
   const handleLogout = async () => {
     try {
       const userID = await AsyncStorage.getItem('userID');
@@ -195,12 +197,12 @@ const ProfilePage = () => {
         mt={2}
         variant="outline"
         colorScheme="purple"
-        leftIcon={<Icon as={<Ionicons name="notifications" />} size="md" color="purple.600" />}
+        leftIcon={<Icon as={<Ionicons name="information-circle" />} size="md" color="purple.600" />}
         width="80%"
-        onPress={() => toast.show({ title: 'Notification settings!' })}
+        onPress={handleAbout}
         style={animatedStyle}
       >
-        Notifications
+        About
       </Button>
       {/* Goal Button*/}
       <Button
