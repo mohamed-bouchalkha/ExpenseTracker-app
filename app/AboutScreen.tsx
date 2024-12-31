@@ -1,13 +1,25 @@
 import React from "react";
-import { ScrollView, View, Text, Image } from "react-native";
+import { ScrollView, View, Text, Image, Linking, TouchableOpacity } from "react-native";
 import styled from "styled-components/native";
+import Icon from 'react-native-vector-icons/FontAwesome'; // Assurez-vous d'installer cette bibliothèque avec `npm install react-native-vector-icons`
+
 // Styled Components
 const Container = styled(ScrollView)`
   flex: 1;
   background-color: #f9f9f9; /* Change this to match your app's background */
   padding: 20px;
 `;
+const GitHubButton = styled(TouchableOpacity)`
+  flex-direction: row;
+  align-items: center;
+  margin-top: 5px;
+`;
 
+const GitHubText = styled(Text)`
+  font-size: 14px;
+  color: #4a90e2; /* Couleur principale de votre app */
+  margin-left: 5px;
+`;
 const Header = styled(View)`
   align-items: center;
   margin-bottom: 20px;
@@ -83,7 +95,6 @@ const FooterText = styled(Text)`
   color: #888;
 `;
 
-// About Screen Component
 const AboutScreen = () => {
   return (
     <Container>
@@ -98,18 +109,22 @@ const AboutScreen = () => {
         <SectionTitle>Meet the Developers</SectionTitle>
         <DeveloperList>
           <DeveloperCard>
-            <DeveloperImage
-              source={{ uri: "" }} // Replace with developer image URL
-            />
+            <DeveloperImage source={require('./assets/med.jpg')} />
             <DeveloperName>Med Bouchalkha</DeveloperName>
             <DeveloperRole>Developer</DeveloperRole>
+            <GitHubButton onPress={() => Linking.openURL('https://github.com/mohamed-bouchalkha')}>
+              <Icon name="github" size={16} color="#4a90e2" />
+              <GitHubText>GitHub</GitHubText>
+            </GitHubButton>
           </DeveloperCard>
           <DeveloperCard>
-            <DeveloperImage
-              source={{ uri: "" }} // Replace with developer image URL
-            />
+            <DeveloperImage source={require('./assets/anas.jpg')} />
             <DeveloperName>Anas Tourari</DeveloperName>
             <DeveloperRole>Developer</DeveloperRole>
+            <GitHubButton onPress={() => Linking.openURL('https://github.com/TatsuyaSoft')}>
+              <Icon name="github" size={16} color="#4a90e2" />
+              <GitHubText>GitHub</GitHubText>
+            </GitHubButton>
           </DeveloperCard>
         </DeveloperList>
       </Section>
@@ -134,5 +149,6 @@ const AboutScreen = () => {
     </Container>
   );
 };
+
 
 export default AboutScreen;

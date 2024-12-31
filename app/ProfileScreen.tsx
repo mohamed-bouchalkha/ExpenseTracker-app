@@ -205,7 +205,7 @@ const ProfilePage = () => {
         About
       </Button>
       {/* Goal Button*/}
-      <Button
+      {/* <Button
         mt={2}
         variant="outline"
         colorScheme="purple"
@@ -215,7 +215,7 @@ const ProfilePage = () => {
         style={animatedStyle}
       >
         Goal Settings !
-      </Button>
+      </Button> */}
       {/* Change Password Button */}
       <Button
         mt={4}

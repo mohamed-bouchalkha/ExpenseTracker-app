@@ -17,7 +17,7 @@ const Index = () => {
 
   return (
     <View style={styles.container}>
-      <Image source={require("./assets/man.png")} style={[styles.logo, { opacity: 0 }]} />
+      <Image source={require("./assets/med.jpg")} style={[styles.logo, { opacity: 0 }]} />
       <Image source={require("./assets/expenselogo.png")} style={styles.bannerImage} />
 
       <Text style={styles.title}>Simplified Expense Tracking.</Text>
