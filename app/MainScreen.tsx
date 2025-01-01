@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Alert,
   BackHandler,
+  RefreshControl,
 } from "react-native";
 import { FAB, Card, Avatar } from "react-native-paper";
 import { useRouter } from "expo-router";
@@ -19,7 +20,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useNavigationState } from "@react-navigation/native";
 import Footer from "./FooterNavigationComp";
 
-// Définir l'interface Expense pour typer correctement les données des dépenses
+// Define the Expense interface for proper data typing
 interface Expense {
   _id: string;
   categoryID: { name: string };
@@ -33,10 +34,10 @@ const HomeScreen = () => {
   const [month, setMonth] = useState<string>("");
   const [activeFooter, setActiveFooter] = useState<string>("Home");
   const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const monthsScrollRef = useRef<FlatList | null>(null);
   const router = useRouter();
 
-  
   const fetchExpensesHandler = async (selectedMonth: string = "") => {
     try {
       setLoading(true);
@@ -60,16 +61,17 @@ const HomeScreen = () => {
       setExpenses(expensesData);
       setTotalExpenses(total);
     } catch (error) {
-      console.error("Erreur lors de la récupération des dépenses:", error);
+      console.error("Error fetching expenses:", error);
     } finally {
       setLoading(false);
     }
   };
-  // Use useNavigationState to track the current route
-  const currentRoute = useNavigationState((state) => state.routes[state.index].name);
+
+  const currentRoute = useNavigationState(
+    (state) => state.routes[state.index].name
+  );
 
   useEffect(() => {
-    // Update activeFooter based on currentRoute
     if (currentRoute === "MainScreen") {
       setActiveFooter("Home");
     } else if (currentRoute === "GraphReportScreen") {
@@ -81,8 +83,6 @@ const HomeScreen = () => {
     }
 
     const onBackPress = () => {
-      // Handle back button press if necessary
-      // Optionally, add logic to handle confirmation for exit
       return false; // Prevent default back action (optional)
     };
 
@@ -91,8 +91,7 @@ const HomeScreen = () => {
     return () => {
       BackHandler.removeEventListener("hardwareBackPress", onBackPress);
     };
-  }, [currentRoute]); // Re-run whenever the route changes
-
+  }, [currentRoute]);
 
   const updateMonthHandler = async (selectedMonth: string) => {
     setMonth(selectedMonth);
@@ -109,12 +108,11 @@ const HomeScreen = () => {
       route === "/MainScreen" ||
       route === "/GraphReportScreen" ||
       route === "/ProfileScreen" ||
-      route === "./HistoryPage"
+      route === "/HistoryPage"
     ) {
       router.push(route);
     }
   };
-
   const handleEditExpense = (expenseId: string) => {
     // Navigate to the AddExpence page with the expenseId as a query parameter
     router.push(`./AddExpence?expenseId=${expenseId}`);
@@ -122,50 +120,55 @@ const HomeScreen = () => {
 
   const handleDeleteExpense = (expenseId: string) => {
     Alert.alert(
-      "Confirmer la suppression",
-      "Êtes-vous sûr de vouloir supprimer cette dépense ?",
+      "Confirm Delete",
+      "Are you sure you want to delete this expense?",
       [
         {
-          text: "Annuler",
+          text: "Cancel",
           style: "cancel",
         },
         {
-          text: "Supprimer",
+          text: "Delete",
           onPress: async () => {
             try {
               const token = await AsyncStorage.getItem("authToken");
               const userID = await AsyncStorage.getItem("userID");
-  
+
               if (!token || !userID) {
                 throw new Error("No token or userID found");
               }
-  
+
               await API.delete(`api/expenses/deleteExpense/${expenseId}`, {
                 headers: {
                   Authorization: `Bearer ${token}`,
                 },
                 params: { userID },
               });
-  
+
               setExpenses(expenses.filter((expense) => expense._id !== expenseId));
-              Alert.alert("Succès", "Dépense supprimée avec succès.");
+              Alert.alert("Success", "Expense deleted successfully.");
             } catch (error) {
-              console.error("Erreur lors de la suppression :", error);
-              Alert.alert("Erreur", "Impossible de supprimer la dépense.");
+              console.error("Error deleting expense:", error);
+              Alert.alert("Error", "Failed to delete the expense.");
             }
           },
         },
       ]
     );
   };
-  
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchExpensesHandler(month);
+    setRefreshing(false);
+  };
+
   useFocusEffect(
     React.useCallback(() => {
       const checkAuthStatus = async () => {
         const token = await AsyncStorage.getItem("authToken");
         const userID = await AsyncStorage.getItem("userID");
 
-        // If no token or userID is found, navigate to login
         if (!token || !userID) {
           router.replace("/LoginScreen");
         }
@@ -175,11 +178,11 @@ const HomeScreen = () => {
 
       const onBackPress = () => {
         Alert.alert(
-          "Quitter l'application",
-          "Êtes-vous sûr de vouloir quitter l'application ?",
+          "Exit App",
+          "Are you sure you want to exit the app?",
           [
-            { text: "Non", style: "cancel" },
-            { text: "Oui", onPress: () => BackHandler.exitApp() },
+            { text: "No", style: "cancel" },
+            { text: "Yes", onPress: () => BackHandler.exitApp() },
           ]
         );
         return true;
@@ -199,7 +202,7 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <FlatList
-        contentContainerStyle={{ paddingBottom: 100 }} // Add padding to avoid overlap with footer
+        contentContainerStyle={{ paddingBottom: 100 }}
         ListHeaderComponent={
           <>
             <View style={styles.header}>
@@ -261,19 +264,17 @@ const HomeScreen = () => {
                 {moment(item.date).format("DD MMM YYYY")}
               </Text>
               <View style={styles.expenseActions}>
-                {/* Bouton pour modifier la dépense */}
                 <TouchableOpacity
-  onPress={() => router.push({ pathname: '/EditExpence/[id]', params: { id: item._id } })}
->
-                  
-  <MaterialCommunityIcons
-    name="pencil"
-    size={24}
-    color={COLORS.PURPLE[600]}
-  />
-</TouchableOpacity>
-
-                {/* Bouton pour supprimer la dépense */}
+                  onPress={() =>
+                    router.push({ pathname: "/EditExpence/[id]", params: { id: item._id } })
+                  }
+                >
+                  <MaterialCommunityIcons
+                    name="pencil"
+                    size={24}
+                    color={COLORS.PURPLE[600]}
+                  />
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => handleDeleteExpense(item._id)}>
                   <MaterialCommunityIcons
                     name="trash-can"
@@ -285,7 +286,9 @@ const HomeScreen = () => {
             </Card.Content>
           </Card>
         )}
-        
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       />
 
       <FAB
@@ -305,45 +308,45 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 16,
   },
- header: { 
-  marginBottom: 20, 
-  paddingHorizontal: 16, // Add consistent horizontal padding 
-},
-monthsContainer: { 
-  flexDirection: "row", 
-  alignItems: "center", 
-  justifyContent: "center", // Center-align months horizontally
-},
-monthButton: { 
-  marginHorizontal: 8, // Reduce the spacing slightly for better aesthetics
-  paddingVertical: 8, // Add padding for better touch targets
-  paddingHorizontal: 12, 
-  borderRadius: 20, // Rounded look for modern UI
-  backgroundColor: "#f3f4f6", // Neutral background for inactive buttons
-  borderWidth: 1, // Add a border for a cleaner look
-  borderColor: COLORS.PURPLE[100], // Subtle border color
-},
-monthText: { 
-  fontSize: 15, // Slightly smaller for a compact look
-  fontWeight: "600", // Semi-bold for emphasis without being too bold
-  color: COLORS.PURPLE[700], // Use a darker purple for better readability
-},
-activeMonthButton: { 
-  backgroundColor: COLORS.PURPLE[600], 
-  borderColor: COLORS.PURPLE[800], // Make the border consistent with active color
-},
-activeMonthText: { 
-  color: "white", 
-  fontWeight: "bold", // Make the active text bold for emphasis
-},
-
-  summaryCard: { marginBottom: 20, backgroundColor: "#f3f4f6" },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", marginVertical: 10 },
+  header: { marginBottom: 20, paddingHorizontal: 16 },
+  monthButton: {
+    marginHorizontal: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: "#f3f4f6",
+    borderWidth: 1,
+    borderColor: COLORS.PURPLE[100],
+  },
+  monthText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: COLORS.PURPLE[700],
+  },
+  activeMonthButton: {
+    backgroundColor: COLORS.PURPLE[600],
+    borderColor: COLORS.PURPLE[800],
+  },
+  activeMonthText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginVertical: 10,
+  },
   expenseCard: { marginVertical: 8 },
   expenseRow: { flexDirection: "row", justifyContent: "space-between" },
   expenseCategory: { fontSize: 16, fontWeight: "bold" },
   expenseAmount: { fontSize: 16, color: "red" },
   expenseDate: { fontSize: 14, color: "gray" },
+  expenseActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    marginTop: 10,
+    gap: 16,
+  },
   fab: {
     position: "absolute",
     right: 16,
@@ -356,12 +359,6 @@ activeMonthText: {
     justifyContent: "center", // Center the icon inside
     alignItems: "center", // Center the icon inside
   },
-  expenseActions: {
-  flexDirection: "row", // Buttons in a row
-  alignSelf: "flex-end", // Move the buttons to the right
-  marginTop: 8, // Maintain some space from other elements
-  gap: 8, // Add spacing between the buttons (or use margin)
-},
   scrollContent: {
     paddingBottom: 100,
   },
