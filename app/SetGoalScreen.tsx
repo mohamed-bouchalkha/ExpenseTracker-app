@@ -1,15 +1,19 @@
+import axios from "axios";
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, StyleSheet, Platform, TouchableOpacity } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker"; // For Date Picker
-import moment from "moment"; // For formatting the date
+import DateTimePicker from "@react-native-community/datetimepicker";
+import moment from "moment";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import colors from "./utils/colors";
+import API from "./utils/api"; // Votre instance Axios
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import pour AsyncStorage
 
 const SetGoalScreen = () => {
   const [date, setDate] = useState(new Date());
   const [amount, setAmount] = useState<string>("");
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [loading, setLoading] = useState(false); // Pour indiquer l'état de chargement
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || date;
@@ -18,32 +22,61 @@ const SetGoalScreen = () => {
   };
 
   const handleAmountChange = (text: string) => {
-    // You can add validation for the amount input if needed
     setAmount(text);
   };
 
-  const handleSubmit = () => {
-    // Handle the form submission (for example, store the date and amount)
-    console.log("Selected Date:", moment(date).format("YYYY-MM-DD"));
-    console.log("Amount:", amount);
+  const handleSubmit = async () => {
+    if (!amount || isNaN(Number(amount))) {
+      alert("Please enter a valid amount.");
+      return;
+    }
+  
+    setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem('authToken'); // Récupérer le token si nécessaire
+      const userID = await AsyncStorage.getItem('userID'); // Récupérer l'ID utilisateur si nécessaire
+  
+      const payload = {
+        userID, 
+        targetDate: moment(date).format("YYYY-MM-DD"),
+        amount: parseFloat(amount),
+      };
+  
+      const response = await API.post("api/goals/addgoals", payload, {
+        headers: { Authorization: `Bearer ${token}` }, // Ajouter le token dans l'en-tête si requis
+      });
+  
+      if (response.status === 201) {
+        alert("Goal saved successfully!");
+        setAmount("");
+        setDate(new Date());
+      }
+    } catch (error: any) {
+      if (error.response && error.response.status === 400) {
+        alert(error.response.data.message); // Afficher le message d'erreur renvoyé par le back-end
+      } else {
+        console.error("Error saving goal:", error);
+        alert("An error occurred while saving the goal.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
+  
+
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
       <TouchableOpacity style={styles.backButtonWrapper} onPress={() => router.back()}>
         <Ionicons name={"arrow-back-outline"} color={"#000"} size={25} />
       </TouchableOpacity>
 
-      {/* Page Content */}
       <Text style={styles.title}>Set Date and Amount</Text>
 
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Select Date:</Text>
         <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateButton}>
-          <Text style={styles.dateButtonText}>
-            {moment(date).format("YYYY-MM-DD")}
-          </Text>
+          <Text style={styles.dateButtonText}>{moment(date).format("YYYY-MM-DD")}</Text>
         </TouchableOpacity>
       </View>
 
@@ -68,8 +101,12 @@ const SetGoalScreen = () => {
         />
       </View>
 
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.submitButtonText}>Submit</Text>
+      <TouchableOpacity
+        style={[styles.submitButton, loading && { backgroundColor: colors.gray }]}
+        onPress={handleSubmit}
+        disabled={loading}
+      >
+        <Text style={styles.submitButtonText}>{loading ? "Saving..." : "Submit"}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -82,23 +119,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#f5f5f5",
     padding: 20,
-    position: "relative", // Ensures absolute positioning for back button works
+    position: "relative",
   },
-
-  // Back Button Styling
   backButtonWrapper: {
-    position: "absolute", // Position it relative to the container
-    top: 20, // Adjust the top margin to your preference
-    left: 20, // Adjust the left margin to your preference
+    position: "absolute",
+    top: 20,
+    left: 20,
     height: 40,
     width: 40,
     backgroundColor: colors.gray,
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 1, // Make sure the button stays on top of other components
+    zIndex: 1,
   },
-
   title: {
     fontSize: 24,
     fontWeight: "bold",

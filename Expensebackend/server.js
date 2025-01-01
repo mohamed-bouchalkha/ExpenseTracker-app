@@ -6,6 +6,7 @@ const authRouteswithverification = require('./routes/authwithverification');
 const categoryRoutes = require('./routes/category');
 const passwordResetRoutes = require('./routes/passwordReset');
 const expenseRoutes = require('./routes/expense'); // Importer les routes des dépenses
+const goalsRoutes = require('./routes/goals'); // Importer les routes des dépenses
 
 const cors = require("cors");
 
@@ -31,6 +32,7 @@ app.use('/api/authv', authRouteswithverification);
 app.use('/api/categories', categoryRoutes);   
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/password', passwordResetRoutes);
+app.use('/api/goals', goalsRoutes);
 
 // Lancer le serveur
 const PORT = process.env.PORT || 5000;
