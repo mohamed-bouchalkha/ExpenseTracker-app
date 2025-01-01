@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const Expense = require('../models/Expense');
 const Category = require('../models/Category');
 const { ObjectId } = require('mongoose').Types;
-
+const Goal = require('../models/Goal');
 const moment = require('moment-timezone');
 const authenticateUser = require("../middlewares/authenticateUser");
 const mongoose = require('mongoose');
@@ -105,7 +105,7 @@ router.post('/addExpense', async (req, res) => {
     const { amount, description, categoryID } = req.body;
 
     // Vérifier si le token est présent dans les headers
-    const token = req.headers['authorization']?.split(' ')[1]; // Récupérer le token depuis les headers
+    const token = req.headers['authorization']?.split(' ')[1];
     if (!token) {
       return res.status(401).json({ message: 'Unauthorized: No token provided' });
     }
@@ -113,39 +113,76 @@ router.post('/addExpense', async (req, res) => {
     // Vérifier et décoder le token pour obtenir l'ID de l'utilisateur
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET); // Utilisez la clé secrète pour vérifier le token
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (err) {
-      console.error("JWT Error:", err);
       return res.status(401).json({ message: 'Invalid or malformed token', error: err.message });
     }
 
-    const userID = decoded.id; // Accéder à l'ID de l'utilisateur depuis le token
+    const userID = decoded.id;
 
-    // Vérifier si les autres données sont présentes
     if (!amount || !categoryID || !userID) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const date = moment().tz("Africa/Casablanca").toDate();
+    // Vérifiez le montant total des dépenses pour aujourd'hui
+    const todayStart = moment().startOf('day').toDate();
+    const todayEnd = moment().endOf('day').toDate();
 
-    const newExpense = new Expense({
-      amount, 
-      date, 
-      description, 
-      categoryID, 
-      userID
+    const totalExpenses = await Expense.aggregate([
+      {
+        $match: {
+          userID: new mongoose.Types.ObjectId(userID),
+          date: { $gte: todayStart, $lte: todayEnd },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    const dailyTotal = totalExpenses[0]?.total || 0;
+
+    // Récupérer le goal défini pour l'utilisateur
+    const userGoal = await Goal.findOne({
+      userID,
+      targetDate: { $gte: todayStart, $lte: todayEnd },
     });
 
+    let warningMessage = null;
+
+    // Vérification si le montant dépasse le goal
+    if (userGoal && dailyTotal + amount > userGoal.amount) {
+      warningMessage = `Warning: You have exceeded your daily goal! Goal: ${userGoal.amount}, Total Expenses Today: ${dailyTotal + amount}`;
+      // Afficher un message dans la console du serveur
+      console.log(`User ${userID} has exceeded their goal for the day. Goal: ${userGoal.amount}, Total Expenses Today: ${dailyTotal + amount}`);
+    }
+
+    // Enregistrer la dépense
+    const date = moment().tz("Africa/Casablanca").toDate();
+    const newExpense = new Expense({ amount, date, description, categoryID, userID });
     const savedExpense = await newExpense.save();
-    res.status(201).json(savedExpense);
+
+    // Envoyer la réponse avec un message de succès et un avertissement si applicable
+    res.status(201).json({
+      message: warningMessage || "Expense saved successfully",
+      expense: savedExpense,
+    });
+
   } catch (err) {
-    console.error(err);
+    console.error("Error saving expense:", err);
     res.status(500).json({
-      message: "Erreur lors de la création de la dépense",
+      message: "Error saving expense",
       error: err.message,
     });
   }
 });
+
+
+
+
 
 // Récupérer les dépenses de l'utilisateur authentifié
 router.get("/getAllExpenses", async (req, res) => {

@@ -98,11 +98,25 @@ const handleSave = async () => {
     console.log("Response from API:", response);
 
     if (response.status === 201) {
-      toast.show({
-        title: 'Expense saved successfully!',
-        variant: 'solid',
-        duration: 3000,
-      });
+      // Vérifier si un message d'avertissement est renvoyé
+      const { message } = response.data;
+
+      // Si un message d'avertissement est présent, l'afficher
+      if (message) {
+        toast.show({
+          title: message,
+          variant: 'solid',
+          duration: 3000,
+        });
+      } else {
+        toast.show({
+          title: 'Expense saved successfully!',
+          variant: 'solid',
+          duration: 3000,
+        });
+      }
+
+      // Réinitialiser les champs après enregistrement
       setAmount('');
       setDescription('');
       setSelectedCategory(null);
@@ -116,6 +130,7 @@ const handleSave = async () => {
     });
   }
 };
+
 
 
 
