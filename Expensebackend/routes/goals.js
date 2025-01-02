@@ -75,4 +75,45 @@ router.get("/getMonthlyGoals", async (req, res) => {
   }
 });
 
+
+router.delete('/deletegoal/:id', async (req, res) => {
+  const { id } = req.params; // Récupérer l'ID du goal depuis les paramètres de la requête
+
+  try {
+    const deletedGoal = await Goal.findByIdAndDelete(id);
+
+    if (!deletedGoal) {
+      return res.status(404).json({ message: 'Goal not found' });
+    }
+
+    res.status(200).json({ message: 'Goal deleted successfully', goal: deletedGoal });
+  } catch (error) {
+    console.error('Error deleting goal:', error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+});
+router.put('/editgoal/:id', async (req, res) => {
+  const { id } = req.params; // Récupérer l'ID du goal depuis les paramètres
+  const { targetDate, amount } = req.body; // Les données à mettre à jour
+
+  try {
+    const updatedGoal = await Goal.findByIdAndUpdate(
+      id,
+      { targetDate: new Date(targetDate), amount },
+      { new: true } // Retourner le document mis à jour
+    );
+
+    if (!updatedGoal) {
+      return res.status(404).json({ message: 'Goal not found' });
+    }
+
+    res.status(200).json({ message: 'Goal updated successfully', goal: updatedGoal });
+  } catch (error) {
+    console.error('Error updating goal:', error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+});
+
+
+
 module.exports = router;
