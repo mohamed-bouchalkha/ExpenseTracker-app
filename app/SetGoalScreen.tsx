@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import {
+  Alert,
   View,
   Text,
   TextInput,
@@ -104,27 +105,37 @@ const SetGoalScreen = () => {
   };
 
   const handleDeleteGoal = async (goalId: string) => {
-    const confirmDelete = confirm("Are you sure you want to delete this goal?");
-    if (!confirmDelete) return;
-
-    setLoading(true);
-    try {
-      const token = await AsyncStorage.getItem("authToken");
-
-      const response = await API.delete(`api/goals/deleteGoal/${goalId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.status === 200) {
-        alert("Goal deleted successfully!");
-        fetchMonthlyGoals(); // Refresh goals after deletion
-      }
-    } catch (error) {
-      console.error("Error deleting goal:", error);
-      alert("Failed to delete goal.");
-    } finally {
-      setLoading(false);
-    }
+    // Afficher la boîte de dialogue pour confirmation
+    Alert.alert(
+      "Confirm Deletion",
+      "Are you sure you want to delete this goal?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "OK",
+          onPress: async () => {
+            try {
+              // Effectuer la requête DELETE pour supprimer l'objectif
+              const response = await API.delete(`/api/goals/deletegoal/${goalId}`);
+              if (response.status === 200) {
+                // Mettre à jour la liste des objectifs après la suppression
+                setMonthlyGoals((prevGoals) => prevGoals.filter((goal) => goal._id !== goalId));
+                alert('Goal deleted successfully');
+  
+                // Rafraîchir les objectifs après suppression (si nécessaire)
+                fetchMonthlyGoals();  // Fonction pour récupérer les objectifs depuis l'API
+              }
+            } catch (error) {
+              console.error('Error deleting goal:', error);
+              alert('Error deleting goal');
+            }
+          }
+        }
+      ]
+    );
   };
 
   useEffect(() => {
