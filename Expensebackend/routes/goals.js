@@ -1,6 +1,7 @@
 const express = require('express');
 const Goal = require('../models/Goal');
 const router = express.Router();
+const mongoose = require("mongoose");
 
 router.post('/addgoals', async (req, res) => {
   const { userID, targetDate, amount } = req.body;
@@ -23,6 +24,37 @@ router.post('/addgoals', async (req, res) => {
   }
 });
 
+// Get all goals grouped by month for a user
+router.get("/getMonthlyGoals", async (req, res) => {
+  try {
+    const { userID } = req.query;
 
-// Exporter le routeur
+    if (!userID) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    // Ensure userID is a valid ObjectId format
+    const userObjectId = new mongoose.Types.ObjectId(userID); // This line is fine without the 'new'
+
+    const goals = await Goal.aggregate([
+      { $match: { userID: userObjectId } },
+      {
+        $group: {
+          _id: { $month: "$targetDate" },
+          totalAmount: { $sum: "$amount" },
+          goals: { $push: "$$ROOT" },
+        },
+      },
+      {
+        $sort: { "_id": 1 }, // Sort by month
+      },
+    ]);
+
+    res.status(200).json(goals);
+  } catch (error) {
+    console.error("Error fetching monthly goals:", error);
+    res.status(500).json({ message: "An error occurred", error });
+  }
+});
+
 module.exports = router;

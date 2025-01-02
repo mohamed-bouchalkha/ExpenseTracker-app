@@ -195,7 +195,7 @@ const GraphReportScreen = () => {
                 }}
               />
               <Text style={styles.totalText}>
-                Total: ${totalAmount.toFixed(2)}
+                Total: {totalAmount.toFixed(2)} DH
               </Text>
             </>
           )}
@@ -225,7 +225,7 @@ const GraphReportScreen = () => {
 
               {/* Amount */}
               <Text style={styles.itemAmount}>
-                ${item.amount.toFixed(2)}
+                {item.amount.toFixed(2)} DH
               </Text>
             </View>
           )}

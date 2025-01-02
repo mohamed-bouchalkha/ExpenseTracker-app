@@ -237,7 +237,7 @@ const HomeScreen = () => {
             ) : (
               <>
                 <Card.Title
-                  title={`Total Expenses: $${totalExpenses || 0}`}
+                  title={`Total Expenses:${totalExpenses || 0} DH`}
                   left={(props) => (
                     <Avatar.Icon
                       {...props}
@@ -258,7 +258,7 @@ const HomeScreen = () => {
             <Card.Content>
               <View style={styles.expenseRow}>
                 <Text style={styles.expenseCategory}>{item.categoryID.name}</Text>
-                <Text style={styles.expenseAmount}>${item.amount}</Text>
+                <Text style={styles.expenseAmount}>{item.amount} DH</Text>
               </View>
               <Text style={styles.expenseDate}>
                 {moment(item.date).format("DD MMM YYYY")}

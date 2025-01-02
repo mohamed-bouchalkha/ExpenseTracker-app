@@ -152,7 +152,7 @@ const HistoryPage = () => {
                   <Text style={styles.expenseDate}>{new Date(item.date).toLocaleDateString()}</Text>
                 </View>
 
-                <Text style={styles.expenseAmount}>${item.amount.toFixed(2)}</Text>
+                <Text style={styles.expenseAmount}>{item.amount.toFixed(2)} DH</Text>
               </View>
             );
           }}
