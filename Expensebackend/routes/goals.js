@@ -3,18 +3,36 @@ const Goal = require('../models/Goal');
 const router = express.Router();
 const mongoose = require("mongoose");
 
+
 router.post('/addgoals', async (req, res) => {
   const { userID, targetDate, amount } = req.body;
 
   try {
-    // Vérifier si un objectif existe déjà pour cet utilisateur et cette date
-    const existingGoal = await Goal.findOne({ userID, targetDate: new Date(targetDate) });
+    const targetDateObj = new Date(targetDate);
+    const targetMonth = targetDateObj.getMonth(); // Obtenir le mois (0-11)
+    const targetYear = targetDateObj.getFullYear(); // Obtenir l'année
+
+    // Vérifier si un objectif existe déjà pour cet utilisateur et ce mois
+    const existingGoal = await Goal.findOne({
+      userID,
+      $expr: {
+        $and: [
+          { $eq: [{ $month: "$targetDate" }, targetMonth + 1] }, // +1 car MongoDB utilise 1-12 pour les mois
+          { $eq: [{ $year: "$targetDate" }, targetYear] },
+        ],
+      },
+    });
+
     if (existingGoal) {
-      return res.status(400).json({ message: `A goal already exists for ${targetDate}.` });
+      return res.status(400).json({ message: `A goal already exists for the month of ${targetMonth + 1}/${targetYear}.` });
     }
 
     // Créer un nouvel objectif
-    const newGoal = new Goal({ userID, targetDate: new Date(targetDate), amount });
+    const newGoal = new Goal({
+      userID,
+      targetDate: targetDateObj,
+      amount,
+    });
     await newGoal.save();
 
     res.status(201).json({ message: 'Goal created successfully', goal: newGoal });
