@@ -18,6 +18,8 @@ import { router } from "expo-router";
 import colors from "./utils/colors2";
 import API from "./utils/api"; // Your Axios instance
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
+import Icon from 'react-native-vector-icons/Ionicons'; // For example, using Ionicons
+
 
 const SetGoalScreen = () => {
   const [date, setDate] = useState(new Date());
@@ -193,10 +195,10 @@ const SetGoalScreen = () => {
                   </Text>
                   <View style={styles.goalActions}>
                     <TouchableOpacity onPress={() => handleEditGoal(goal._id)} style={styles.editButton}>
-                      <Text style={styles.buttonText}>Edit</Text>
+                      <Icon name="pencil" size={24} color="#000" />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => handleDeleteGoal(goal._id)} style={styles.deleteButton}>
-                      <Text style={styles.buttonText}>Delete</Text>
+                      <Icon name="trash" size={24} color="#000" />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -210,13 +212,14 @@ const SetGoalScreen = () => {
   );
 };
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "flex-start", // Align to the top of the screen
+    justifyContent: "flex-start", // Adjusted to ensure proper spacing
     alignItems: "center",
     backgroundColor: "#f5f5f5",
-    paddingTop: 20,
+    paddingTop: 310,
     paddingHorizontal: 20,
   },
   backButtonWrapper: {
@@ -225,7 +228,7 @@ const styles = StyleSheet.create({
     left: 20,
     height: 40,
     width: 40,
-    backgroundColor: "#ccc", // Replace with a specific color value or a valid color from the colors object
+    backgroundColor: "purple",
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
@@ -235,17 +238,20 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 20,
+    position: "absolute",
+    top: 150,
+    
   },
   inputContainer: {
     width: "100%",
-    marginBottom: 20,
+    marginBottom: 10,
   },
   label: {
     fontSize: 16,
     color: "#333",
     marginBottom: 10,
     fontWeight: "600",
+    
   },
   dateButton: {
     backgroundColor: "#6c5ce7",
@@ -290,62 +296,57 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#333",
-    marginVertical: 20,
+    marginVertical: 25,
   },
   flatListContent: {
-    paddingBottom: 30,
+    paddingBottom: 10,
   },
+
   goalCard: {
     backgroundColor: "#fff",
-    marginRight: 20,
-    padding: 15,
-    borderRadius: 10,
-    elevation: 5, // Adds shadow for Android
-    shadowColor: "#000", // iOS shadow
-    shadowOffset: { width: 0, height: 4 },
+    marginRight: 10,
+    padding: 6, 
+    borderRadius: 8,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.1,
-    shadowRadius: 5,
+    shadowRadius: 3,
+    width: 200, // Fixed width
+    height: 100, // Fixed height for smaller cards
+    justifyContent: "center", // Center content vertically
+    marginBottom: 15, // Space between cards
   },
   goalMonth: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 4, // Reduced space
     color: "#333",
   },
-  goalAmount: {
-    fontSize: 16,
-    marginBottom: 10,
-    color: "#555",
-  },
   goalItemContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
     marginBottom: 10,
   },
   goalItem: {
     fontSize: 14,
     color: "#333",
+    marginBottom: 4,
   },
   goalActions: {
     flexDirection: "row",
-    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 8,
   },
   editButton: {
     backgroundColor: colors.BLUE[500],
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
     borderRadius: 5,
-    marginRight: 10,
   },
   deleteButton: {
     backgroundColor: colors.PINK[500],
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
     borderRadius: 5,
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "bold",
   },
 });
 
