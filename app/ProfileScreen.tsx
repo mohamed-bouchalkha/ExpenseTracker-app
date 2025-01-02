@@ -192,18 +192,7 @@ const ProfilePage = () => {
         />
       </HStack>
 
-      {/* Notification Button */}
-      <Button
-        mt={2}
-        variant="outline"
-        colorScheme="purple"
-        leftIcon={<Icon as={<Ionicons name="information-circle" />} size="md" color="purple.600" />}
-        width="80%"
-        onPress={handleAbout}
-        style={animatedStyle}
-      >
-        About
-      </Button>
+
       {/* Goal Button*/}
       <Button
         mt={2}
@@ -218,7 +207,7 @@ const ProfilePage = () => {
       </Button>
       {/* Change Password Button */}
       <Button
-        mt={4}
+        mt={2}
         variant="solid"
         colorScheme="purple"
         leftIcon={<Icon as={<Ionicons name="key" />} size="md" color="white" />}
@@ -228,7 +217,18 @@ const ProfilePage = () => {
       >
         Change Password
       </Button>
-
+      {/* Notification Button */}
+      <Button
+        mt={2}
+        variant="outline"
+        colorScheme="purple"
+        leftIcon={<Icon as={<Ionicons name="information-circle" />} size="md" color="purple.600" />}
+        width="80%"
+        onPress={handleAbout}
+        style={animatedStyle}
+      >
+        About
+      </Button>
       {/* Logout Button */}
       <Button
         mt={4}

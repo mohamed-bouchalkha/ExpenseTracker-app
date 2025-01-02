@@ -9,13 +9,16 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import AsyncStorage from "@react-native-async-storage/async-storage";  // Import de AsyncStorage
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import de AsyncStorage
 import API from './utils/api';  // Import de ton API
 
 const ChangePasswordScreen = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [oldPasswordVisible, setOldPasswordVisible] = useState(false);
+  const [newPasswordVisible, setNewPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async () => {
@@ -59,7 +62,7 @@ const ChangePasswordScreen = () => {
         router.push("/LoginScreen");  // Redirige vers la page principale
       }
     } catch (error) {
-        console.error('Error:', (error as any).response?.data || error);
+      console.error("Error:", (error as any).response?.data || error);
       Alert.alert("Error", "Failed to change password.");
     }
   };
@@ -78,6 +81,7 @@ const ChangePasswordScreen = () => {
       </View>
 
       <View style={styles.formContainer}>
+        {/* Champ pour l'ancien mot de passe */}
         <View style={styles.inputContainer}>
           <Ionicons name={"lock-closed-outline"} size={30} color={"#999"} />
           <TextInput
@@ -85,10 +89,18 @@ const ChangePasswordScreen = () => {
             placeholder="Enter old password"
             value={oldPassword}
             onChangeText={setOldPassword}
-            secureTextEntry
+            secureTextEntry={!oldPasswordVisible} // Utilise la visibilité du mot de passe
           />
+          <TouchableOpacity onPress={() => setOldPasswordVisible(!oldPasswordVisible)}>
+            <Ionicons
+              name={oldPasswordVisible ? "eye-off-outline" : "eye-outline"}
+              size={25}
+              color="#999"
+            />
+          </TouchableOpacity>
         </View>
 
+        {/* Champ pour le nouveau mot de passe */}
         <View style={styles.inputContainer}>
           <Ionicons name={"lock-closed-outline"} size={30} color={"#999"} />
           <TextInput
@@ -96,10 +108,18 @@ const ChangePasswordScreen = () => {
             placeholder="Enter new password"
             value={newPassword}
             onChangeText={setNewPassword}
-            secureTextEntry
+            secureTextEntry={!newPasswordVisible} // Utilise la visibilité du mot de passe
           />
+          <TouchableOpacity onPress={() => setNewPasswordVisible(!newPasswordVisible)}>
+            <Ionicons
+              name={newPasswordVisible ? "eye-off-outline" : "eye-outline"}
+              size={25}
+              color="#999"
+            />
+          </TouchableOpacity>
         </View>
 
+        {/* Champ pour la confirmation du mot de passe */}
         <View style={styles.inputContainer}>
           <Ionicons name={"lock-closed-outline"} size={30} color={"#999"} />
           <TextInput
@@ -107,8 +127,15 @@ const ChangePasswordScreen = () => {
             placeholder="Confirm new password"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
-            secureTextEntry
+            secureTextEntry={!confirmPasswordVisible} // Utilise la visibilité du mot de passe
           />
+          <TouchableOpacity onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}>
+            <Ionicons
+              name={confirmPasswordVisible ? "eye-off-outline" : "eye-outline"}
+              size={25}
+              color="#999"
+            />
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity onPress={handleSubmit} style={styles.submitButtonWrapper}>
