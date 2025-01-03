@@ -114,6 +114,31 @@ router.put('/editgoal/:id', async (req, res) => {
   }
 });
 
+// Fonction pour récupérer un objectif par ID
+router.get('/goals/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Vérifie si l'ID est valide
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid Goal ID' });
+    }
+
+    // Recherche de l'objectif par ID
+    const goal = await Goal.findById(id);
+
+    if (!goal) {
+      return res.status(404).json({ error: 'Goal not found' });
+    }
+
+    // Retourne les détails de l'objectif
+    return res.status(200).json(goal);
+  } catch (error) {
+    console.error('Error fetching goal details:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 
 module.exports = router;

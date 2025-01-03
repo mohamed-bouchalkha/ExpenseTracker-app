@@ -31,6 +31,7 @@ export default function RootLayout() {
         <Stack.Screen name="CodeverificationforForgetpass"options={{headerShown: false,}}/>
         <Stack.Screen name="SetGoalScreen"options={{headerShown: false,}}/>
         <Stack.Screen name="AboutScreen"options={{headerShown: false,}}/>
+        <Stack.Screen name="Editgoals" options={{headerShown: false,}}/>
       </Stack>
       </NotificationProvider>
     </NativeBaseProvider>

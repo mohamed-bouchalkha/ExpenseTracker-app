@@ -99,10 +99,7 @@ const SetGoalScreen = () => {
     }
   };
 
-  const handleEditGoal = (goalId: string) => {
-    // Handle goal edit (this could open a modal or navigate to an edit screen)
-    alert(`Edit Goal: ${goalId}`);
-  };
+
 
   const handleDeleteGoal = async (goalId: string) => {
     // Afficher la boîte de dialogue pour confirmation
@@ -205,7 +202,9 @@ const SetGoalScreen = () => {
                     {moment(goal.targetDate).format("DD MMM")}:{goal.amount} DH
                   </Text>
                   <View style={styles.goalActions}>
-                    <TouchableOpacity onPress={() => handleEditGoal(goal._id)} style={styles.editButton}>
+                    <TouchableOpacity             onPress={() =>
+                    router.push({ pathname: "/Editgoals/[id]", params: { id: goal._id } })
+                  }style={styles.editButton}>
                       <Icon name="pencil" size={24} color="#000" />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => handleDeleteGoal(goal._id)} style={styles.deleteButton}>
