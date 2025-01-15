@@ -11,6 +11,8 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  RefreshControl,
+  ScrollView,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import moment from "moment";
@@ -29,7 +31,7 @@ const SetGoalScreen = () => {
   const [loading, setLoading] = useState(false); // For loading state
   const [monthlyGoals, setMonthlyGoals] = useState<any[]>([]); // State for goals
   const [fetchingGoals, setFetchingGoals] = useState(false); // Loading state for fetching goals
-
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const handleDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || date;
     setShowDatePicker(false);
@@ -98,6 +100,11 @@ const SetGoalScreen = () => {
       setFetchingGoals(false);
     }
   };
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchMonthlyGoals();
+    setRefreshing(false);
+  };
 
 
 
@@ -140,85 +147,98 @@ const SetGoalScreen = () => {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.backButtonWrapper} onPress={() => router.back()}>
-        <Ionicons name={"arrow-back-outline"} color={"#000"} size={25} />
-      </TouchableOpacity>
-
-      <Text style={styles.title}>Set Date and Amount</Text>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Select Date:</Text>
-        <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateButton}>
-          <Text style={styles.dateButtonText}>{moment(date).format("YYYY-MM-DD")}</Text>
+    <ScrollView
+      style={{ flex: 1 }}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+      }
+    >
+      <View style={styles.container}>
+        <TouchableOpacity style={styles.backButtonWrapper} onPress={() => router.back()}>
+          <Ionicons name={"arrow-back-outline"} color={"#000"} size={25} />
         </TouchableOpacity>
-      </View>
 
-      {showDatePicker && (
-        <DateTimePicker
-          value={date}
-          mode="date"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={handleDateChange}
-          style={styles.datePicker}
-        />
-      )}
+        <Text style={styles.title}>Set Date and Amount</Text>
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Enter Amount:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter amount"
-          keyboardType="numeric"
-          value={amount}
-          onChangeText={handleAmountChange}
-        />
-      </View>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Select Date:</Text>
+          <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateButton}>
+            <Text style={styles.dateButtonText}>{moment(date).format("YYYY-MM-DD")}</Text>
+          </TouchableOpacity>
+        </View>
 
-      <TouchableOpacity
-        style={[styles.submitButton, loading && { backgroundColor: '#ccc' }]}
-        onPress={handleSubmit}
-        disabled={loading}
-      >
-        <Text style={styles.submitButtonText}>{loading ? "Saving..." : "Submit"}</Text>
-      </TouchableOpacity>
+        {showDatePicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={handleDateChange}
+            style={styles.datePicker}
+          />
+        )}
 
-      <Text style={styles.sectionTitle}>Monthly Goals:</Text>
-      {fetchingGoals ? (
-        <ActivityIndicator size="large" color={colors.PURPLE[500]} />
-      ) : (
-        <FlatList
-          data={monthlyGoals}
-          horizontal={true} // Enables horizontal scrolling
-          keyExtractor={(item) => item._id.toString()} // Ensure the key is unique
-          renderItem={({ item }) => (
-            <View style={styles.goalCard}>
-              <Text style={styles.goalMonth}>
-                {moment().month(item._id - 1).format("MMMM")}
-              </Text>
-              {item.goals.map((goal: any) => (
-                <View key={goal._id} style={styles.goalItemContainer}>
-                  <Text style={styles.goalItem}>
-                    {moment(goal.targetDate).format("DD MMM")}:{goal.amount} DH
-                  </Text>
-                  <View style={styles.goalActions}>
-                    <TouchableOpacity             onPress={() =>
-                    router.push({ pathname: "/Editgoals/[id]", params: { id: goal._id } })
-                  }style={styles.editButton}>
-                      <Icon name="pencil" size={24} color="#000" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleDeleteGoal(goal._id)} style={styles.deleteButton}>
-                      <Icon name="trash" size={24} color="#000" />
-                    </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Enter Amount:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter amount"
+            keyboardType="numeric"
+            value={amount}
+            onChangeText={handleAmountChange}
+          />
+        </View>
+
+        <TouchableOpacity
+          style={[styles.submitButton, loading && { backgroundColor: '#ccc' }]}
+          onPress={handleSubmit}
+          disabled={loading}
+        >
+          <Text style={styles.submitButtonText}>{loading ? "Saving..." : "Submit"}</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.sectionTitle}>Monthly Goals:</Text>
+        {fetchingGoals ? (
+          <ActivityIndicator size="large" color={colors.PURPLE[500]} />
+        ) : (
+          <FlatList
+            data={monthlyGoals}
+            horizontal={true} // Enables horizontal scrolling
+            keyExtractor={(item) => item._id.toString()} // Ensure the key is unique
+            renderItem={({ item }) => (
+              <View style={styles.goalCard}>
+                <Text style={styles.goalMonth}>
+                  {moment().month(item._id - 1).format("MMMM")}
+                </Text>
+                {item.goals.map((goal: any) => (
+                  <View key={goal._id} style={styles.goalItemContainer}>
+                    <Text style={styles.goalItem}>
+                      {moment(goal.targetDate).format("DD MMM")}:{goal.amount} DH
+                    </Text>
+                    <View style={styles.goalActions}>
+                      <TouchableOpacity
+                        onPress={() =>
+                          router.push({ pathname: "/Editgoals/[id]", params: { id: goal._id } })
+                        }
+                        style={styles.editButton}
+                      >
+                        <Icon name="pencil" size={24} color="#000" />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => handleDeleteGoal(goal._id)} style={styles.deleteButton}>
+                        <Icon name="trash" size={24} color="#000" />
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
-              ))}
-            </View>
-          )}
-          contentContainerStyle={styles.flatListContent} // Adjusts spacing between items
-        />
-      )}
-    </View>
+                ))}
+              </View>
+            )}
+            contentContainerStyle={styles.flatListContent} 
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            }
+          />
+        )}
+      </View>
+    </ScrollView>
   );
 };
 

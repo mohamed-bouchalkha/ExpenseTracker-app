@@ -100,9 +100,12 @@ const handleSave = async () => {
     if (response.status === 201) {
       // Vérifier si un message d'avertissement est renvoyé
       const { message } = response.data;
+      if (message && message.startsWith('Warning: You have exceeded your daily goal!')) {
+        alert(message); 
+      }
 
       // Si un message d'avertissement est présent, l'afficher
-      if (message) {
+      else if (message) {
         toast.show({
           title: message,
           variant: 'solid',
