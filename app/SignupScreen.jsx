@@ -1,19 +1,20 @@
 import {
-  Image,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
   Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
 } from "react-native";
 import React, { useState } from "react";
 import { colors } from "./utils/colors";
 import { fonts } from "./utils/fonts";
-import API from "./utils/api"; // Votre instance Axios
+import API from "./utils/api";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import SimpleLineIcons from "react-native-vector-icons/SimpleLineIcons";
-import { useNavigation } from "@react-navigation/native"; 
+import { useNavigation } from "@react-navigation/native";
 
 const SignupScreen = () => {
   const navigation = useNavigation();
@@ -27,184 +28,231 @@ const SignupScreen = () => {
     try {
       const response = await API.post("/api/authv/register", {
         firstName: firstname,
-        lastName: lastname,    
+        lastName: lastname,
         email,
         password,
       });
-      
-
       if (response.status === 201) {
-        Alert.alert("A verification code has already been sent to this email address!");
+        Alert.alert("Verification code sent to your email!");
         navigation.navigate("VerificationCodeScreen");
       }
     } catch (error) {
-      console.error("Signup Error: ", error.response?.data || error.message);
-      Alert.alert("Error", "Signup Failed. Please try again.");
+      Alert.alert("Error", "Signup failed. Please try again.");
     }
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.backButtonWrapper} onPress={() => navigation.goBack()}>
-        <Ionicons name={"arrow-back-outline"} color={"#000"} size={25} />
-      </TouchableOpacity>
-
-      <View style={styles.textContainer}>
-        <Text style={styles.headingText}>Let's get</Text>
-        <Text style={styles.headingText}>started</Text>
-      </View>
-
-      <View style={styles.formContainer}>
-        <View style={styles.inputContainer}>
-          <Ionicons name={"person-outline"} size={30} color={"#999"} />
-          <TextInput
-            style={styles.textInput}
-            placeholder="First Name"
-            value={firstname}
-            onChangeText={setFirstname}
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Ionicons name={"person-outline"} size={30} color={"#999"} />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Last Name"
-            value={lastname}
-            onChangeText={setLastname}
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Ionicons name={"mail-outline"} size={30} color={"#999"} />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={setEmail}
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <SimpleLineIcons name={"lock"} size={30} color={"#999"} />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Enter your password"
-            secureTextEntry={secureEntry}
-            value={password}
-            onChangeText={setPassword}
-          />
-          <TouchableOpacity onPress={() => setSecureEntry((prev) => !prev)}>
-            <SimpleLineIcons name={secureEntry ? "eye" : "eye-off"} size={20} color={"#999"} />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="chevron-back" size={24} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity onPress={handleSignup} style={styles.loginButtonWrapper}>
-          <Text style={styles.loginText}>Sign up</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+        <View style={styles.content}>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>Fill in your details to get started</Text>
+          </View>
+
+          <View style={styles.form}>
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>First Name</Text>
+              <View style={[styles.inputContainer, firstname && styles.inputContainerActive]}>
+                <Ionicons name="person-outline" size={20} color={colors.primary} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your first name"
+                  value={firstname}
+                  onChangeText={setFirstname}
+                  placeholderTextColor={colors.textTertiary}
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>Last Name</Text>
+              <View style={[styles.inputContainer, lastname && styles.inputContainerActive]}>
+                <Ionicons name="person-outline" size={20} color={colors.primary} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your last name"
+                  value={lastname}
+                  onChangeText={setLastname}
+                  placeholderTextColor={colors.textTertiary}
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>Email Address</Text>
+              <View style={[styles.inputContainer, email && styles.inputContainerActive]}>
+                <Ionicons name="mail-outline" size={20} color={colors.primary} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your email"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  placeholderTextColor={colors.textTertiary}
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>Password</Text>
+              <View style={[styles.inputContainer, password && styles.inputContainerActive]}>
+                <Ionicons name="lock-closed-outline" size={20} color={colors.primary} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Create a password"
+                  secureTextEntry={secureEntry}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholderTextColor={colors.textTertiary}
+                />
+                <TouchableOpacity onPress={() => setSecureEntry(!secureEntry)}>
+                  <Ionicons
+                    name={secureEntry ? "eye-outline" : "eye-off-outline"}
+                    size={20}
+                    color={colors.primary}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
+              <Text style={styles.signupText}>Create Account</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Already have an account?</Text>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Text style={styles.loginText}>Sign In</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
-
-export default SignupScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
-    padding: 20,
+    backgroundColor: "#FFFFFF",
   },
-  backButtonWrapper: {
-    height: 40,
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 40,
+  },
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: 24,
+  },
+  backButton: {
     width: 40,
-    backgroundColor: colors.gray,
-    borderRadius: 20,
+    height: 40,
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 20,
+    backgroundColor: "#F8F9FA",
   },
-  textContainer: {
-    marginVertical: 20,
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 40,
   },
-  headingText: {
+  titleContainer: {
+    marginBottom: 40,
+  },
+  title: {
     fontSize: 32,
-    color: colors.primary,
-    fontFamily: fonts.SemiBold,
+    fontFamily: fonts.Bold,
+    color: colors.text,
+    marginBottom: 8,
+    letterSpacing: -0.5,
   },
-  formContainer: {
-    marginTop: 20,
+  subtitle: {
+    fontSize: 16,
+    fontFamily: fonts.Regular,
+    color: colors.textSecondary,
+  },
+  form: {
+    gap: 24,
+  },
+  inputWrapper: {
+    gap: 8,
+  },
+  label: {
+    fontSize: 14,
+    fontFamily: fonts.Semibold,
+    color: colors.text,
+    marginLeft: 4,
   },
   inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    height: 56,
+    backgroundColor: "#F8F9FA",
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: colors.secondary,
-    borderRadius: 100,
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 2,
-    marginVertical: 10,
+    borderColor: "#E9ECEF",
+    gap: 12,
   },
-  textInput: {
-    flex: 1,
-    paddingHorizontal: 10,
-    fontFamily: fonts.Light,
-  },
-  forgotPasswordText: {
-    textAlign: "right",
-    color: colors.primary,
-    fontFamily: fonts.SemiBold,
-    marginVertical: 10,
-  },
-  loginButtonWrapper: {
-    backgroundColor: colors.primary,
-    borderRadius: 100,
-    marginTop: 20,
-  },
-  loginText: {
-    color: colors.white,
-    fontSize: 20,
-    fontFamily: fonts.SemiBold,
-    textAlign: "center",
-    padding: 10,
-  },
-  continueText: {
-    textAlign: "center",
-    marginVertical: 20,
-    fontSize: 14,
-    fontFamily: fonts.Regular,
-    color: colors.primary,
-  },
-  googleButtonContainer: {
-    flexDirection: "row",
-    borderWidth: 2,
+  inputContainerActive: {
     borderColor: colors.primary,
-    borderRadius: 100,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 10,
-    gap: 10,
+    backgroundColor: "#FFFFFF",
   },
-  googleImage: {
-    height: 20,
-    width: 20,
-  },
-  googleText: {
-    fontSize: 20,
-    fontFamily: fonts.SemiBold,
-  },
-  footerContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginVertical: 20,
-    gap: 5,
-  },
-  accountText: {
-    color: colors.primary,
+  input: {
+    flex: 1,
+    fontSize: 16,
     fontFamily: fonts.Regular,
+    color: colors.text,
+  },
+  signupButton: {
+    height: 56,
+    backgroundColor: colors.primary,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 8,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   signupText: {
-    color: colors.primary,
+    fontSize: 16,
     fontFamily: fonts.Bold,
+    color: "#FFFFFF",
+    letterSpacing: 0.5,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    marginTop: "auto",
+  },
+  footerText: {
+    fontSize: 14,
+    fontFamily: fonts.Regular,
+    color: colors.textSecondary,
+  },
+  loginText: {
+    fontSize: 14,
+    fontFamily: fonts.Bold,
+    color: colors.primary,
   },
 });
+
+export default SignupScreen;

@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   View,
   Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { colors } from "./utils/colors";
@@ -27,109 +30,151 @@ const CodeVerificationScreen = () => {
       const response = await API.post('/api/authv/verify-code', { code });
       if (response.status === 200) {
         Alert.alert('Success', 'Code verified successfully.');
-        router.push('/LoginScreen'); // Redirige vers l'écran suivant.
+        router.push('/LoginScreen');
       }
     } catch (error) {
-      console.error('Error:', error|| error);
       Alert.alert('Error', 'Failed to verify the code.');
     }
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.backButtonWrapper}
-        onPress={() => router.back()}
-      >
-        <Ionicons name={"arrow-back-outline"} color={"#000"} size={25} />
-      </TouchableOpacity>
-
-      <View style={styles.textContainer}>
-        <Text style={styles.headingText}>Enter Verification Code</Text>
-        <Text style={styles.subText}>We have sent a 6-digit code to your email.</Text>
-      </View>
-
-      <View style={styles.formContainer}>
-        <View style={styles.inputContainer}>
-          <Ionicons name={"key-outline"} size={30} color={"#999"} />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Enter 6-digit code"
-            value={code}
-            onChangeText={setCode}
-            keyboardType="numeric"
-            maxLength={6}
-          />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={24} color={colors.primary} />
+          </TouchableOpacity>
         </View>
 
-        <TouchableOpacity onPress={handleSubmit} style={styles.submitButtonWrapper}>
-          <Text style={styles.submitText}>Verify</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+        <View style={styles.content}>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Enter Verification Code</Text>
+            <Text style={styles.subtitle}>We have sent a 6-digit code to your email</Text>
+          </View>
+
+          <View style={styles.form}>
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>Verification Code</Text>
+              <View style={[styles.inputContainer, code && styles.inputContainerActive]}>
+                <Ionicons name="key-outline" size={20} color={colors.primary} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter 6-digit code"
+                  value={code}
+                  onChangeText={setCode}
+                  keyboardType="numeric"
+                  maxLength={6}
+                  placeholderTextColor={colors.textTertiary}
+                />
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.verifyButton} onPress={handleSubmit}>
+              <Text style={styles.verifyText}>Verify Code</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
-
-export default CodeVerificationScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
-    padding: 20,
+    backgroundColor: "#FFFFFF",
   },
-  backButtonWrapper: {
-    height: 40,
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 40,
+  },
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: 24,
+  },
+  backButton: {
     width: 40,
-    backgroundColor: colors.gray,
-    borderRadius: 20,
+    height: 40,
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 20,
+    backgroundColor: "#F8F9FA",
   },
-  textContainer: {
-    marginVertical: 20,
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 40,
   },
-  headingText: {
-    fontSize: 24,
-    color: colors.primary,
-    fontFamily: fonts.SemiBold,
-    textAlign: "center",
+  titleContainer: {
+    marginBottom: 40,
   },
-  subText: {
-    fontSize: 14,
-    color: colors.gray,
+  title: {
+    fontSize: 32,
+    fontFamily: fonts.Bold,
+    color: colors.text,
+    marginBottom: 8,
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: 16,
     fontFamily: fonts.Regular,
-    textAlign: "center",
-    marginTop: 10,
+    color: colors.textSecondary,
   },
-  formContainer: {
-    marginTop: 20,
+  form: {
+    gap: 24,
+  },
+  inputWrapper: {
+    gap: 8,
+  },
+  label: {
+    fontSize: 14,
+    fontFamily: fonts.Semibold,
+    color: colors.text,
+    marginLeft: 4,
   },
   inputContainer: {
-    borderWidth: 1,
-    borderColor: colors.secondary,
-    borderRadius: 100,
-    paddingHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",
-    padding: 2,
-    marginVertical: 10,
+    paddingHorizontal: 16,
+    height: 56,
+    backgroundColor: "#F8F9FA",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E9ECEF",
+    gap: 12,
   },
-  textInput: {
+  inputContainerActive: {
+    borderColor: colors.primary,
+    backgroundColor: "#FFFFFF",
+  },
+  input: {
     flex: 1,
-    paddingHorizontal: 10,
-    fontFamily: fonts.Light,
+    fontSize: 16,
+    fontFamily: fonts.Regular,
+    color: colors.text,
   },
-  submitButtonWrapper: {
+  verifyButton: {
+    height: 56,
     backgroundColor: colors.primary,
-    borderRadius: 100,
-    marginTop: 20,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 8,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  submitText: {
-    color: colors.white,
-    fontSize: 20,
-    fontFamily: fonts.SemiBold,
-    textAlign: "center",
-    padding: 10,
+  verifyText: {
+    fontSize: 16,
+    fontFamily: fonts.Bold,
+    color: "#FFFFFF",
+    letterSpacing: 0.5,
   },
 });
+
+export default CodeVerificationScreen;

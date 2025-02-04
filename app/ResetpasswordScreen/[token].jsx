@@ -6,143 +6,175 @@ import {
   TouchableOpacity,
   View,
   Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { colors } from "../utils/colors";
 import { fonts } from "../utils/fonts";
-// import { useRouter } from "expo-router"; // Importation de useRouter
-import API from '../utils/api'; // Assurez-vous que cette instance Axios pointe vers votre backend.
-import { useRouter, useSearchParams,usePathname  } from "expo-router"; // Importez useSearchParams
+import API from "../utils/api";
+import { useRouter, usePathname } from "expo-router";
 
 const ResetPasswordScreen = () => {
   const pathname = usePathname();
-  const token = pathname.split("/").pop(); // Extract the last segment (token)
+  const token = pathname.split("/").pop();
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [secureEntry, setSecureEntry] = useState(true);
   const router = useRouter();
-  const handleSubmit = async () => { 
+
+  const handleSubmit = async () => {
     if (!newPassword || !confirmPassword) {
       Alert.alert("Error", "Please fill in both fields.");
       return;
     }
-
     if (newPassword !== confirmPassword) {
       Alert.alert("Error", "Passwords do not match.");
       return;
     }
-
     try {
-      const response = await API.post('/api/password/reset-password', { 
-        token, // Passez le token avec la requête.
+      const response = await API.post("/api/password/reset-password", {
+        token,
         password: newPassword,
       });
       if (response.status === 200) {
         Alert.alert("Success", "Your password has been successfully reset.");
-        router.push("/LoginScreen"); // Redirige vers la page de connexion après succès.
+        router.push("/LoginScreen");
       }
     } catch (error) {
-      console.error("Error:", error.response?.data || error.message);
       Alert.alert("Error", "Failed to reset the password.");
     }
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.backButtonWrapper}
-        onPress={() => router.back()} // Utilisation correcte de router.back()
-      >
-        <Ionicons name={"arrow-back-outline"} color={"#000"} size={25} />
-      </TouchableOpacity>
-
-      <View style={styles.textContainer}>
-        <Text style={styles.headingText}>Reset Your Password</Text>
-      </View>
-
-      <View style={styles.formContainer}>
-        <View style={styles.inputContainer}>
-          <Ionicons name={"lock-closed-outline"} size={30} color={"#999"} />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Enter new password"
-            value={newPassword}
-            onChangeText={setNewPassword}
-            secureTextEntry
-          />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={24} color={colors.primary} />
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.inputContainer}>
-          <Ionicons name={"lock-closed-outline"} size={30} color={"#999"} />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Confirm new password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-          />
-        </View>
+        <View style={styles.content}>
+          <Text style={styles.title}>Reset Your Password</Text>
 
-        <TouchableOpacity onPress={handleSubmit} style={styles.submitButtonWrapper}>
-          <Text style={styles.submitText}>Submit</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+          <View style={styles.form}>
+            <View style={styles.inputContainer}>
+              <Ionicons name="lock-closed-outline" size={20} color={colors.primary} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter new password"
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry={secureEntry}
+                placeholderTextColor={colors.textTertiary}
+              />
+              <TouchableOpacity onPress={() => setSecureEntry(!secureEntry)}>
+                <Ionicons
+                  name={secureEntry ? "eye-outline" : "eye-off-outline"}
+                  size={20}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Ionicons name="lock-closed-outline" size={20} color={colors.primary} />
+              <TextInput
+                style={styles.input}
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={secureEntry}
+                placeholderTextColor={colors.textTertiary}
+              />
+            </View>
+
+            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+              <Text style={styles.submitText}>Submit</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
-    padding: 20,
   },
-  backButtonWrapper: {
-    height: 40,
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 40,
+  },
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: 24,
+  },
+  backButton: {
     width: 40,
-    backgroundColor: colors.gray,
-    borderRadius: 20,
+    height: 40,
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 20,
+    backgroundColor: "#F8F9FA",
   },
-  textContainer: {
-    marginVertical: 20,
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 40,
   },
-  headingText: {
-    fontSize: 24,
-    color: colors.primary,
-    fontFamily: fonts.SemiBold,
+  title: {
+    fontSize: 28,
+    fontFamily: fonts.Bold,
+    color: colors.text,
     textAlign: "center",
+    marginBottom: 24,
   },
-  formContainer: {
-    marginTop: 20,
+  form: {
+    gap: 16,
   },
   inputContainer: {
-    borderWidth: 1,
-    borderColor: colors.secondary,
-    borderRadius: 100,
-    paddingHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",
-    padding: 2,
-    marginVertical: 10,
+    paddingHorizontal: 16,
+    height: 56,
+    backgroundColor: "#F8F9FA",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E9ECEF",
+    gap: 12,
   },
-  textInput: {
+  input: {
     flex: 1,
-    paddingHorizontal: 10,
-    fontFamily: fonts.Light,
+    fontSize: 16,
+    fontFamily: fonts.Regular,
+    color: colors.text,
   },
-  submitButtonWrapper: {
+  submitButton: {
+    height: 56,
     backgroundColor: colors.primary,
-    borderRadius: 100,
-    marginTop: 20,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 16,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   submitText: {
-    color: colors.white,
-    fontSize: 20,
-    fontFamily: fonts.SemiBold,
-    textAlign: "center",
-    padding: 10,
+    fontSize: 16,
+    fontFamily: fonts.Bold,
+    color: "#FFFFFF",
   },
 });
+
 export default ResetPasswordScreen;

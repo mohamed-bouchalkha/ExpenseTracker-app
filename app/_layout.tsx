@@ -12,19 +12,19 @@ export default function RootLayout() {
     <NotificationProvider>
       <Stack>
         <Stack.Screen name="index"options={{headerShown: false, }}/> 
-        <Stack.Screen name="ChangePasswordScreen" />
+        <Stack.Screen name="ChangePasswordScreen" options={{headerShown: false,}}/>
         <Stack.Screen name="Home" options={{headerShown: false,}}/>
         <Stack.Screen name="LoginScreen" options={{headerShown: false,}}/>
         <Stack.Screen name="SignupScreen"options={{headerShown: false,}} />
         <Stack.Screen name="MainScreen" options={{headerShown: false,}} />
-        <Stack.Screen name="EmailScreen"/>
-        <Stack.Screen name="ResetpasswordScreen"/>
-        <Stack.Screen name="VerifyEmailScreen" />
+        <Stack.Screen name="EmailScreen" options={{headerShown: false,}}/>
+        <Stack.Screen name="ResetpasswordScreen" options={{headerShown: false,}}/>
+        <Stack.Screen name="VerifyEmailScreen" options={{headerShown: false,}}/>
         <Stack.Screen name="AddExpence"options={{headerShown: false,}}/>
-        <Stack.Screen name="AddCatgory"/>
+        {/* <Stack.Screen name="AddCatgory"/> */}
         <Stack.Screen name="HistoryPage" options={{headerShown: false,}} />
         <Stack.Screen name="GraphReportScreen"options={{headerShown: false,}} />
-        <Stack.Screen name="Changepassword" />
+        <Stack.Screen name="Changepassword"options={{headerShown: false,}} />
         <Stack.Screen name="ProfileScreen"options={{headerShown: false,}}/>
         <Stack.Screen name="EditExpence" options={{headerShown: false,}}/>
         <Stack.Screen name="VerificationCodeScreen"options={{headerShown: false,}}/>
@@ -32,6 +32,7 @@ export default function RootLayout() {
         <Stack.Screen name="SetGoalScreen"options={{headerShown: false,}}/>
         <Stack.Screen name="AboutScreen"options={{headerShown: false,}}/>
         <Stack.Screen name="Editgoals" options={{headerShown: false,}}/>
+        <Stack.Screen name="Scanner" options={{headerShown: false,}}/>
       </Stack>
       </NotificationProvider>
     </NativeBaseProvider>

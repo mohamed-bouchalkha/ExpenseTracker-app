@@ -1,15 +1,14 @@
-import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from "react-native";
+import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from "react-native";
 import { colors } from "./utils/colors";
 import { fonts } from "./utils/fonts";
-import API from "./utils/api"; // Votre instance Axios
+import API from "./utils/api";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import SimpleLineIcons from "react-native-vector-icons/SimpleLineIcons";
-import { useRouter } from "expo-router";  // Importation de useRouter
+import { useRouter } from "expo-router";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect } from "react";
 
 const LoginScreen = () => {
-  const router = useRouter();  // Utilisation de useRouter pour la navigation
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [secureEntry, setSecureEntry] = useState(true);
@@ -17,98 +16,104 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     try {
       const response = await API.post("/api/authv/login", { email, password });
-  
       if (response.status === 200) {
         const { token, userID } = response.data;
-  
-        // Stocker le token et l'ID utilisateur dans AsyncStorage ou dans un état global
         await AsyncStorage.setItem('authToken', token);
         await AsyncStorage.setItem('userID', userID);
-    
-        // Poursuivre avec la navigation ou autres actions
-        console.log('User ID:', userID);
-        console.log('User token:', token);
-
-        Alert.alert("Success", "Login Successful!");
-        router.push("/MainScreen");  // Redirige vers la page MainScreen
+        router.push("/MainScreen");
       }
     } catch (error) {
-      Alert.alert('Error', error.response.data.message);
-
+      Alert.alert('Error', 'Invalid credentials. Please try again.');
     }
   };
-  const handleGoBack = () => {
-    navigation.goBack();
-  };
-  const handleSignup = () => {
-    router.push("/SignupScreen"); // Redirige vers la page d'inscription
-  };
-  const handleforget = () => {
-    router.push("/EmailScreen"); // Redirige vers la page d'inscription
-  };  
+
+  const handleSignup = () => router.push("/SignupScreen");
+  const handleForgot = () => router.push("/EmailScreen");
+
   useEffect(() => {
     const resetLoginState = async () => {
       setEmail('');
       setPassword('');
-      await AsyncStorage.clear(); // Supprime tous les éléments persistants.
+      await AsyncStorage.clear();
     };
     resetLoginState();
   }, []);
-  
+
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButtonWrapper} onPress={() => router.back()}>
-        <Ionicons name={"arrow-back-outline"} color={"#000"} size={25} />
-      </TouchableOpacity>
-
-      <View style={styles.textContainer}>
-        <Text style={styles.headingText}>Hey,</Text>
-        <Text style={styles.headingText}>Welcome</Text>
-        <Text style={styles.headingText}>Back</Text>
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => router.back()}
+        >
+          <Ionicons name="chevron-back" size={24} color={colors.primary} />
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.formContainer}>
-        <View style={styles.inputContainer}>
-          <Ionicons name={"mail-outline"} size={30} color={"#999"} />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={setEmail}
-          />
+      <View style={styles.content}>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Welcome Back</Text>
+          <Text style={styles.subtitle}>Sign in to your account</Text>
         </View>
 
-        <View style={styles.inputContainer}>
-          <SimpleLineIcons name={"lock"} size={30} color={"#999"} />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Enter your password"
-            secureTextEntry={secureEntry}
-            value={password}
-            onChangeText={setPassword}
-          />
-          <TouchableOpacity onPress={() => setSecureEntry((prev) => !prev)}>
-            <SimpleLineIcons name={secureEntry ? "eye" : "eye-off"} size={20} color={"#999"} />
+        <View style={styles.form}>
+          <View style={styles.inputWrapper}>
+            <Text style={styles.label}>Email Address</Text>
+            <View style={[styles.inputContainer, email && styles.inputContainerActive]}>
+              <Ionicons name="mail-outline" size={20} color={colors.primary} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your email"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholderTextColor={colors.textTertiary}
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputWrapper}>
+            <Text style={styles.label}>Password</Text>
+            <View style={[styles.inputContainer, password && styles.inputContainerActive]}>
+              <Ionicons name="lock-closed-outline" size={20} color={colors.primary} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your password"
+                secureTextEntry={secureEntry}
+                value={password}
+                onChangeText={setPassword}
+                placeholderTextColor={colors.textTertiary}
+              />
+              <TouchableOpacity onPress={() => setSecureEntry(!secureEntry)}>
+                <Ionicons 
+                  name={secureEntry ? "eye-outline" : "eye-off-outline"} 
+                  size={20} 
+                  color={colors.primary} 
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <TouchableOpacity 
+            style={styles.forgotButton} 
+            onPress={handleForgot}
+          >
+            <Text style={styles.forgotText}>Forgot password?</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.loginButton} 
+            onPress={handleLogin}
+          >
+            <Text style={styles.loginText}>Sign In</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={handleforget}>
-          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleLogin} style={styles.loginButtonWrapper}>
-          <Text style={styles.loginText}>Login</Text>
-        </TouchableOpacity>
-        {/* <Text style={styles.continueText}>or continue with</Text>
-        <TouchableOpacity style={styles.googleButtonContainer}>
-          <Image
-            source={require("./assets/google.png")}
-            style={styles.googleImage}
-          />
-          <Text style={styles.googleText}>Google</Text>
-        </TouchableOpacity> */}
-        <View style={styles.footerContainer}>
-          <Text style={styles.accountText}>Don’t have an account?</Text>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Don't have an account?</Text>
           <TouchableOpacity onPress={handleSignup}>
-            <Text style={styles.signupText}>Sign up</Text>
+            <Text style={styles.signupText}>Create Account</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -116,104 +121,124 @@ const LoginScreen = () => {
   );
 };
 
-export default LoginScreen;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
-    padding: 20,
+    backgroundColor: '#FFFFFF',
   },
-  backButtonWrapper: {
-    height: 40,
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: 24,
+  },
+  backButton: {
     width: 40,
-    backgroundColor: colors.gray,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#F8F9FA',
   },
-  textContainer: {
-    marginVertical: 20,
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 40,
   },
-  headingText: {
+  titleContainer: {
+    marginBottom: 40,
+  },
+  title: {
     fontSize: 32,
-    color: colors.primary,
-    fontFamily: fonts.SemiBold,
+    fontFamily: fonts.Bold,
+    color: colors.text,
+    marginBottom: 8,
+    letterSpacing: -0.5,
   },
-  formContainer: {
-    marginTop: 20,
+  subtitle: {
+    fontSize: 16,
+    fontFamily: fonts.Regular,
+    color: colors.textSecondary,
+  },
+  form: {
+    gap: 24,
+  },
+  inputWrapper: {
+    gap: 8,
+  },
+  label: {
+    fontSize: 14,
+    fontFamily: fonts.Semibold,
+    color: colors.text,
+    marginLeft: 4,
   },
   inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    height: 56,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: colors.secondary,
-    borderRadius: 100,
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 2,
-    marginVertical: 10,
+    borderColor: '#E9ECEF',
+    gap: 12,
   },
-  textInput: {
+  inputContainerActive: {
+    borderColor: colors.primary,
+    backgroundColor: '#FFFFFF',
+  },
+  input: {
     flex: 1,
-    paddingHorizontal: 10,
-    fontFamily: fonts.Light,
+    fontSize: 16,
+    fontFamily: fonts.Regular,
+    color: colors.text,
   },
-  forgotPasswordText: {
-    textAlign: "right",
+  forgotButton: {
+    alignSelf: 'flex-end',
+  },
+  forgotText: {
+    fontSize: 14,
+    fontFamily: fonts.Semibold,
     color: colors.primary,
-    fontFamily: fonts.SemiBold,
-    marginVertical: 10,
   },
-  loginButtonWrapper: {
+  loginButton: {
+    height: 56,
     backgroundColor: colors.primary,
-    borderRadius: 100,
-    marginTop: 20,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
+    shadowColor: colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   loginText: {
-    color: colors.white,
-    fontSize: 20,
-    fontFamily: fonts.SemiBold,
-    textAlign: "center",
-    padding: 10,
+    fontSize: 16,
+    fontFamily: fonts.Bold,
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
-  continueText: {
-    textAlign: "center",
-    marginVertical: 20,
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 'auto',
+    paddingBottom: 40,
+  },
+  footerText: {
     fontSize: 14,
     fontFamily: fonts.Regular,
-    color: colors.primary,
-  },
-  googleButtonContainer: {
-    flexDirection: "row",
-    borderWidth: 2,
-    borderColor: colors.primary,
-    borderRadius: 100,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 10,
-    gap: 10,
-  },
-  googleImage: {
-    height: 20,
-    width: 20,
-  },
-  googleText: {
-    fontSize: 20,
-    fontFamily: fonts.SemiBold,
-  },
-  footerContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginVertical: 20,
-    gap: 5,
-  },
-  accountText: {
-    color: colors.primary,
-    fontFamily: fonts.Regular,
+    color: colors.textSecondary,
   },
   signupText: {
-    color: colors.primary,
+    fontSize: 14,
     fontFamily: fonts.Bold,
+    color: colors.primary,
   },
 });
+
+export default LoginScreen;
