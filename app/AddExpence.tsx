@@ -100,7 +100,7 @@ const handleSave = async () => {
     if (response.status === 201) {
       // Vérifier si un message d'avertissement est renvoyé
       const { message } = response.data;
-      if (message && message.startsWith('Warning: You have exceeded your daily goal!')) {
+      if (message && message.startsWith('Warning: You have exceeded your monthly goal!')) {
         alert(message); 
       }
 

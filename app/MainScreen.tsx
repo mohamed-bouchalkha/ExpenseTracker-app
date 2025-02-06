@@ -113,6 +113,7 @@ const HomeScreen = () => {
       router.push(route);
     }
   };
+
   const handleEditExpense = (expenseId: string) => {
     // Navigate to the AddExpence page with the expenseId as a query parameter
     router.push(`./AddExpence?expenseId=${expenseId}`);
@@ -362,6 +363,5 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 100,
   },
-});
-
+})
 export default HomeScreen;

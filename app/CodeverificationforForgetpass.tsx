@@ -63,7 +63,7 @@ const CodeVerificationScreen = () => {
                   keyboardType="numeric"
                   maxLength={6}
                   autoCapitalize="none"
-                  placeholderTextColor={colors.textTertiary}
+                  placeholderTextColor={colors.gray}
                 />
               </View>
             </View>
@@ -110,14 +110,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontFamily: fonts.Bold,
-    color: colors.text,
+    color: colors.primary,
     marginBottom: 8,
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 16,
     fontFamily: fonts.Regular,
-    color: colors.textSecondary,
+    color: colors.secondary,
   },
   form: {
     gap: 24,
@@ -127,8 +127,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontFamily: fonts.Semibold,
-    color: colors.text,
+    fontFamily: fonts.SemiBold,
+    color: colors.primary,
     marginLeft: 4,
   },
   inputContainer: {
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontFamily: fonts.Regular,
-    color: colors.text,
+    color: colors.primary,
   },
   submitButton: {
     height: 56,
