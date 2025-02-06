@@ -155,7 +155,7 @@ router.post('/addExpense', async (req, res) => {
 
     // Vérification si le montant dépasse le goal
     if (userGoal && dailyTotal + amount > userGoal.amount) {
-      warningMessage = `Warning: You have exceeded your daily goal! Goal: ${userGoal.amount}, Total Expenses Today: ${dailyTotal + amount}`;
+      warningMessage = `Warning: You have exceeded your monthly goal! Goal: ${userGoal.amount}, Total Expenses Today: ${dailyTotal + amount}`;
       // Afficher un message dans la console du serveur
       console.log(`User ${userID} has exceeded their goal for the day. Goal: ${userGoal.amount}, Total Expenses Today: ${dailyTotal + amount}`);
     }
